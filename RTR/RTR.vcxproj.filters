@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="TOOLS">
+      <UniqueIdentifier>{a518f9aa-e2ab-40ab-8d49-8fc4384382a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IMGUI">
+      <UniqueIdentifier>{98fcfad6-1773-4a0a-aef1-448838e2e4b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Window">
+      <UniqueIdentifier>{eb4b336b-9dcd-469f-b742-033256d9937e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Object">
+      <UniqueIdentifier>{e0661963-c5cb-47e2-9e32-a3da2c56b991}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light">
+      <UniqueIdentifier>{df09e027-9b44-4267-ae61-047abbc1a5a4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="glad.c">
+      <Filter>TOOLS</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="imgui.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_demo.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_draw.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_glfw.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_opengl3.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_tables.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_widgets.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stb_image.h">
+      <Filter>TOOLS</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>TOOLS</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>TOOLS</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Global.h">
+      <Filter>TOOLS</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Cube.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Draw.h">
+      <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Plane.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
