@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="TOOLS">
+      <UniqueIdentifier>{a518f9aa-e2ab-40ab-8d49-8fc4384382a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IMGUI">
+      <UniqueIdentifier>{98fcfad6-1773-4a0a-aef1-448838e2e4b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Window">
+      <UniqueIdentifier>{eb4b336b-9dcd-469f-b742-033256d9937e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Object">
+      <UniqueIdentifier>{e0661963-c5cb-47e2-9e32-a3da2c56b991}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Light">
+      <UniqueIdentifier>{df09e027-9b44-4267-ae61-047abbc1a5a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderMode">
+      <UniqueIdentifier>{a17db554-8ece-4d84-b882-453ae0d1d7d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderHelp">
+      <UniqueIdentifier>{33987620-e1b0-4f68-a6ee-0334bae1addd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderPath">
+      <UniqueIdentifier>{d34653c1-fff5-4f1c-9219-6ced833f0060}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdAPI">
+      <UniqueIdentifier>{7f002abd-11ce-44db-b194-88cbdba7e8d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderHelp\Header">
+      <UniqueIdentifier>{af6ebd2b-725f-401b-b29d-742dd2ad8c81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderHelp\Source">
+      <UniqueIdentifier>{8c2f46ab-5230-4760-80ab-935522710747}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="imgui.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_demo.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_draw.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_glfw.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_opengl3.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_tables.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_widgets.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp" />
+    <ClCompile Include="glad.c">
+      <Filter>ThirdAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="stb_image_write.cpp">
+      <Filter>ThirdAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="stb_image.cpp">
+      <Filter>ThirdAPI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Shader.h">
+      <Filter>TOOLS</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>TOOLS</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Cube.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Plane.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Sphere.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Program.h" />
+    <ClInclude Include="Window.h">
+      <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectWindow.h">
+      <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="OperateWindow.h">
+      <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawWindow.h">
+      <Filter>Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Forward.h">
+      <Filter>RenderPath</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>TOOLS</Filter>
+    </ClInclude>
+    <ClInclude Include="PointLight.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectionalLight.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="SpotLight.h">
+      <Filter>Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Message.h">
+      <Filter>TOOLS</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderMode.h">
+      <Filter>RenderMode</Filter>
+    </ClInclude>
+    <ClInclude Include="BlinPhone.h">
+      <Filter>RenderMode</Filter>
+    </ClInclude>
+    <ClInclude Include="PBR.h">
+      <Filter>RenderMode</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPath.h">
+      <Filter>RenderPath</Filter>
+    </ClInclude>
+    <ClInclude Include="Defered.h">
+      <Filter>RenderPath</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderHelp.h">
+      <Filter>RenderHelp\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="GBufferPass.h">
+      <Filter>RenderHelp\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="IrradiancePass.h">
+      <Filter>RenderHelp\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="LUTPass.h">
+      <Filter>RenderHelp\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="PrefilterPass.h">
+      <Filter>RenderHelp\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SSAOPass.h">
+      <Filter>RenderHelp\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="SSRPass.h">
+      <Filter>RenderHelp\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="TAAPass.h">
+      <Filter>RenderHelp\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="CSMPass.h">
+      <Filter>RenderHelp\Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
