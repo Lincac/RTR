@@ -25,11 +25,13 @@ visual studio克隆
 因为功能界面尚未完善，所以只能代码内部改咯
 
 # 功能
-界面操作尚未完成   
-实现前向渲染、延迟渲染  
-实现PBR渲染模型、BlinPhone渲染模型  
-TAA（新添加）  
-SSR（这个还没添加，但是在我的另一个仓库里有对应实现） （Done！）   
+界面操作(Undone)    
+实现前向渲染、延迟渲染  （Done!）  
+实现PBR渲染模型、BlinPhone渲染模型  (Done!)
+卡通渲染（Undone）  
+SSAO(Done！)  
+TAA（Done!）    
+SSR（Done！）   
 
 # 待完善...  
 界面功能、代码完善....   
