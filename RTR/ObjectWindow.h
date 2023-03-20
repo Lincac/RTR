@@ -9,9 +9,12 @@ class ObjectWindow : public Window {
 public:
 	ObjectWindow() {
 	};
-
-	virtual void RenderWindow(unsigned int textureID = NULL);
+	virtual ~ObjectWindow() override{};
+	virtual void RenderWindow(unsigned int textureID = NULL) override;
+	virtual Message SendMessage() override { return Message(); };
+	virtual void ReciveMessage(Message message) override {};
 };
+
 void ObjectWindow::RenderWindow(unsigned int textureID) {
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_None);
 	ImGui::SetNextWindowSize(ImVec2(float(OWWidth), float(OWHeight)), ImGuiCond_None);
@@ -35,6 +38,7 @@ void ObjectWindow::RenderWindow(unsigned int textureID) {
 			}
 			ImGui::EndMenuBar();
 		}
+
 
 		ImGui::End();
 	}

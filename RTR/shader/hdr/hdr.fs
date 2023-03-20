@@ -1,31 +1,30 @@
-#version 450 core
+#version 460 core
 
 out vec4 FragColor;
 
 in vec2 TexCoords;
 
-uniform sampler2D hdr;
-uniform sampler2D ssaoblur;
-uniform sampler2D ssr;
+uniform sampler2D HDR;
+uniform sampler2D SSAO;
+uniform sampler2D SSR;
+
 uniform float exposure;
+uniform bool OpenSSAO;
+uniform bool OpenSSR;
 
 void main(){
-    vec2 uv = texture(ssr,TexCoords).xy;
-    float visibility = texture(ssr,TexCoords).b;   
-    visibility = clamp(visibility,0,1); 
-    vec3 ssrcolor = vec3(0.0);
-    vec2 texelSize =  1.0 / vec2(textureSize(ssr,0));
-    for(int i = -2;i<=2;i++){
-        for(int j = -2;j<=2;j++){
-            vec2 offset = vec2(float(i),float(j)) * texelSize;
-            ssrcolor += mix(vec3(0.0),texture(hdr,uv).rgb,visibility);
-        }
+    vec3 hdrcolor = texture(HDR,TexCoords).rgb;
+
+    if(OpenSSR){
+        vec3 ssrcolor = texture(SSR,TexCoords).rgb;
+        hdrcolor += ssrcolor;
+        hdrcolor += ssrcolor;
     }
-    ssrcolor /= (5.0 * 5.0);
-    vec3 hdrcolor = texture(hdr,TexCoords).rgb;
-    float ao = texture(ssaoblur,TexCoords).r;
-    hdrcolor += ssrcolor;
-    hdrcolor *= ao;
+
+    if(OpenSSAO){
+        float ao = texture(SSAO,TexCoords).r;
+        hdrcolor *= ao;
+    }
 
     vec3 mapped = vec3(1.0) - exp(-hdrcolor * exposure);   // hdr to ldr
     // vec3 mapped = hdrcolor / (hdrcolor + vec3(1.0));

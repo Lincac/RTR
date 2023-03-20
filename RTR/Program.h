@@ -35,6 +35,9 @@ private:
 
 	// load objs
 	std::shared_ptr<Objects> objs;
+
+	// message send
+	Message message;
 };
 
 void Program::Init() {
@@ -65,6 +68,10 @@ void Program::Init() {
 	objs = std::make_shared<Objects>();
 	std::shared_ptr<Object> sphere = std::make_shared<Sphere>("Sphere" + std::to_string(objs->get_objs().size()));
 	objs->add(sphere);
+	//std::shared_ptr<Object> cube = std::make_shared<Cube>("Cube" + std::to_string(objs->get_objs().size()));
+	//objs->add(cube);
+	//std::shared_ptr<Object> plane = std::make_shared<Plane>("Plane" + std::to_string(objs->get_objs().size()));
+	//objs->add(plane);
 
 	std::shared_ptr<RenderHelp> csm = std::make_shared<CSMPass>();
 	passes.emplace("csm", csm);
@@ -76,45 +83,58 @@ void Program::Init() {
 	passes.emplace("lutpass", lutpass);
 	std::shared_ptr<RenderHelp> prefilter = std::make_shared<PrefilterPass>();
 	passes.emplace("prefilter", prefilter);
+	std::shared_ptr<RenderHelp> ssao = std::make_shared<SSAOPass>();
+	passes.emplace("ssao", ssao);
+	std::shared_ptr<RenderHelp> ssr = std::make_shared<SSRPass>();
+	passes.emplace("ssr", ssr);
 
 	skyboxshader = std::make_shared<Shader>("shader/skybox/sky.vs", "shader/skybox/sky.fs");
-	Debugshader = std::make_shared<Shader>("shader/temp/cubetemp.vs", "shader/temp/cubetemp.fs");
+	Debugshader = std::make_shared<Shader>("shader/temp/temp.vs", "shader/temp/temp.fs");
+	processshader = std::make_shared<Shader>("shader/hdr/hdr.vs", "shader/hdr/hdr.fs");
 
 	std::shared_ptr<RenderMode> renderMode = std::make_shared<PBR>();
-	renderPath = std::make_shared<Defered>(renderMode);
+	renderPath = std::make_shared<Forward>(renderMode);
+
+	message = Message();
 }
 
 void Program::Render() {
-	// csm
+	 //csm
 	std::shared_ptr<RenderHelp> csm = passes.at("csm");
 	csm->RenderPass(objs);
 
+	//// ssao 
+	//if (OpenSSAO)
+	//{
+	//	std::shared_ptr<RenderHelp> gbuffer = passes.at("gbuffer");
+	//	gbuffer->RenderPass(objs);
+	//	std::shared_ptr<RenderHelp> ssao = passes.at("ssao");
+	//	ssao->RenderPass(objs);
+	//}
+
 	unsigned int ID = renderPath->Render(objs);
 
-	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplOpenGL3_NewFrame();	
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-	
 	objectwindow->RenderWindow();
-	drawwindow->RenderWindow(ID);
+	drawwindow->RenderWindow( ID);
 	operatewindow->RenderWindow();
-
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-
-	// debug
+	 //debug
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	//glViewport(0, 0, Window::scr_WIDTH, Window::scr_HEIGHT);
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//Debugshader->use();
 	//Debugshader->setInt("Tex", 0);
-	//Debugshader->setMat4("model", glm::mat4(1.0));
-	//Debugshader->setMat4("view", view);
-	//Debugshader->setMat4("projection", projection);
+	//Debugshader->setInt("Tex2", 1);
 	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, TexMap.at("prefilterMap"));
-	//renderCube();
+	//glBindTexture(GL_TEXTURE_2D, TexMap.at("SSR"));
+	//glActiveTexture(GL_TEXTURE1);
+	//glBindTexture(GL_TEXTURE_2D, TexMap.at("gAlbedo"));
+	//renderQuad();
 }
 
 void Program::Update() {

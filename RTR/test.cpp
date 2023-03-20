@@ -5,6 +5,8 @@
 	3.7 : 完成简单场景测试
 	3.8~3.9 :  完成BlinPhone模型测试
 	3.13~3.14 : 完成前向渲染和延迟渲染场景
+	3.15 : 添加了延迟渲染TAA
+	等待完成SSR...
 */
 #include"Program.h"
 
@@ -26,6 +28,7 @@ int main() {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWwindow* window = glfwCreateWindow(Window::scr_WIDTH, Window::scr_HEIGHT, "RTR", NULL, NULL);
@@ -56,6 +59,9 @@ int main() {
 	program = Program(window);
 	program.Init();
 
+	preview = camera.GetViewMatrix();
+	preprojection = glm::perspective(glm::radians(camera.Zoom), (float)Window::DWWidth / (float)Window::DWHeight, camera.nearplane, camera.farplane);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		float currentFrame = float(glfwGetTime());
@@ -68,6 +74,10 @@ int main() {
 		processInput(window);
 
 		program.Render();
+
+		preview = view;
+		preprojection = projection;
+		offsetindex++;
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

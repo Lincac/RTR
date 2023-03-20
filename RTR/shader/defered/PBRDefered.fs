@@ -157,8 +157,7 @@ float GeometrySmith(vec3 V,vec3 N,vec3 L, float roughness){ //观察方向(几�
 
 void main(){
     vec3 fragpos = texture(gPosition,TexCoords).xyz;
-    //vec3 albedo = pow(texture(gAlbedo,TexCoords).rgb,vec3(2.2));
-    vec3 albedo = texture(gAlbedo,TexCoords).rgb;
+    vec3 albedo = pow(texture(gAlbedo,TexCoords).rgb,vec3(2.2));
     float metallic = texture(gParameter,TexCoords).r;
     float roughness = texture(gParameter,TexCoords).g;
     float ao = texture(gParameter,TexCoords).b;

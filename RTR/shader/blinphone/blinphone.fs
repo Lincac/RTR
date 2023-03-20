@@ -77,7 +77,8 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     float current = projCoords.z;
     if(current > 1.0) return 0.0;
 
-    float bias = max(0.05 * (1.0 - dot(normalize(fs_in.Normal),normalize(lightDir))),0.005);
+    vec3 normal = normalize(fs_in.Normal);
+    float bias = max(0.05 * (1.0 - dot(normal,normalize(lightDir))),0.06);
     if(layer == cascadeCount) bias *= 1.0 / (farPlane * 5); 
     else bias *= 1.0 / (cascadePlaneDistances[layer] * 5); // 缩小偏移量
 
@@ -121,7 +122,7 @@ void main()
     vec3 viewDir = normalize(viewPos - fs_in.FragPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);  
 
-    vec3 albedo = texture(Albedo,fs_in.TexCoords).rgb;
+    vec3 albedo = pow(texture(Albedo,fs_in.TexCoords).rgb,vec3(2.2));
     // ambient
     vec3 ambient = Ambient * albedo;
     // diffuse

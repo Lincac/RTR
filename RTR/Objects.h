@@ -26,15 +26,14 @@ void Objects::render(std::string renderModeName,std::shared_ptr<Shader> shader) 
 		obj->render(renderModeName,shader);
 }
 
+void Objects::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> shader) {
+	for (const auto& obj : objs)
+		obj->GbufferRender(renderModeName,shader);
+}
+
 void Objects::temp_render(std::shared_ptr<Shader> shader) {
 	for (const auto& obj : objs)
 		obj->temp_render(shader);
 }
-
-void Objects::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> shader) {
-	for (const auto& obj : objs)
-		obj->GbufferRender(renderModeName,shader);
-};
-
 
 #endif // !OBJECTS_H

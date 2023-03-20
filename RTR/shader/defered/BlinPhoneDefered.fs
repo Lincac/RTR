@@ -123,6 +123,8 @@ void main(){
 
     vec4 albedo = texture(gAlbedo,TexCoords);
     float Gloss = albedo.a;
+    albedo.rgb = pow(albedo.rgb,vec3(2.2));
+
     // ambient
     vec3 ambient = Ambient * albedo.rgb;
     // diffuse

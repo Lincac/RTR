@@ -7,7 +7,6 @@
 
 #include"SSAOPass.h"
 #include"SSRPass.h"	
-#include"TAAPass.h"
 #include"GBufferPass.h"
 #include"IrradiancePass.h"
 #include"LUTPass.h"

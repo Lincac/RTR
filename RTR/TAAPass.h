@@ -3,36 +3,34 @@
 #ifndef TAAPASS_H
 #define TAAPASS_H
 
-#include"RenderHelp.h"
+#include"Shader.h"
 
-class TAAPass : public RenderHelp {
+class TAAPass{
 public:
 	TAAPass();
-	virtual void RenderPass(std::shared_ptr<Objects> objs, std::string renderModeName = "") override;
-private:
-	unsigned int FBO;
-	unsigned int textureID;
+	~TAAPass();
+	unsigned int historyframe;
+	unsigned int historycolor;
 	std::shared_ptr<Shader> shader;
 };
 TAAPass::TAAPass() {
-	glGenFramebuffers(1, &FBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-	textureID = (Window::DWWidth, Window::DWHeight);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+	glGenFramebuffers(1, &historyframe);
+	glBindFramebuffer(GL_FRAMEBUFFER, historyframe);
+
+	glGenTextures(1, &historycolor);
+	glBindTexture(GL_TEXTURE_2D, historycolor);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Window::DWWidth, Window::DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, historycolor, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	TexMap.emplace("TAA", textureID);
-
-	//shader = std::make_shared<Shader>();
+	shader = std::make_shared<Shader>("shader/taa/taa.vs", "shader/taa/taa.fs");
 }
 
-void TAAPass::RenderPass(std::shared_ptr<Objects> objs, std::string renderModeName) {
-	shader->use();
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	renderQuad();
+TAAPass::~TAAPass() {
+	glDeleteFramebuffers(1, &historyframe);
+	glDeleteTextures(1, &historycolor);
 }
-
 
 #endif // ! CSM_H

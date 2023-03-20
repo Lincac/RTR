@@ -18,7 +18,10 @@ private:
 	unsigned int gNormal;
 	unsigned int gAlbedo;
 	unsigned int gParameter;
+	unsigned int gVelo;
+	unsigned int depthTexture;
 	std::shared_ptr<Shader> shader;
+	std::shared_ptr<Shader> MipMapShader;
 };
 
 GBufferPass::GBufferPass() {
@@ -53,23 +56,45 @@ GBufferPass::GBufferPass() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gParameter, 0);
 
-	unsigned int attachment[4] = { GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1,GL_COLOR_ATTACHMENT2,GL_COLOR_ATTACHMENT3 };
-	glDrawBuffers(4, attachment);
+	glGenTextures(1, &gVelo);
+	glBindTexture(GL_TEXTURE_2D, gVelo);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, Window::DWWidth, Window::DWHeight, 0, GL_RG, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gVelo, 0);
 
-	glGenRenderbuffers(1, &gRBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, gRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, Window::DWWidth, Window::DWHeight);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gRBO);
+	unsigned int attachment[5] = { GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1,GL_COLOR_ATTACHMENT2,GL_COLOR_ATTACHMENT3,GL_COLOR_ATTACHMENT4 };
+	glDrawBuffers(5, attachment);
+
+	//glGenRenderbuffers(1, &gRBO);
+	//glBindRenderbuffer(GL_RENDERBUFFER, gRBO);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, Window::DWWidth, Window::DWHeight);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gRBO);
+
+	glGenTextures(1, &depthTexture);
+	glBindTexture(GL_TEXTURE_2D, depthTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, Window::DWWidth, Window::DWHeight, 0,
+		GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "error to compile gbuffer" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	//shader = std::make_shared<Shader>("shader/gbuffer/BlinPhonegbuffer.vs", "shader/gbuffer/BlinPhonegbuffer.fs");
-	shader = std::make_shared<Shader>("shader/gbuffer/PBRbuffer.vs", "shader/gbuffer/PBRbuffer.fs");
+	shader = std::make_shared<Shader>("shader/gbuffer/BlinPhonegbuffer.vs", "shader/gbuffer/BlinPhonegbuffer.fs");
+	//shader = std::make_shared<Shader>("shader/gbuffer/PBRbuffer.vs", "shader/gbuffer/PBRbuffer.fs");
+	MipMapShader = std::make_shared<Shader>("shader/gbuffer/MipMap.vs", "shader/gbuffer/MipMap.fs");
 	TexMap.emplace("gPosition", gPosition);
 	TexMap.emplace("gNormal", gNormal);
 	TexMap.emplace("gAlbedo", gAlbedo);
 	TexMap.emplace("gParameter", gParameter);
+	TexMap.emplace("gVelo", gVelo);
+	TexMap.emplace("depthMap", depthTexture);
 }
 
 GBufferPass::~GBufferPass() {
@@ -78,14 +103,55 @@ GBufferPass::~GBufferPass() {
 	glDeleteTextures(1, &gNormal);
 	glDeleteTextures(1, &gAlbedo);
 	glDeleteTextures(1, &gParameter);
+	glDeleteTextures(1, &gVelo);
 	glDeleteRenderbuffers(1, &gRBO);
 }
 
 void GBufferPass::RenderPass(std::shared_ptr<Objects> objs, std::string renderModeName) {
 	glBindFramebuffer(GL_FRAMEBUFFER, gFBO);
 	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
+	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	objs->GbufferRender(renderModeName, shader);
+
+	if (OpenSSR)
+	{
+		// DownSample depthMap
+		MipMapShader->use();
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depthTexture);
+		glDepthFunc(GL_ALWAYS);
+		int numLevels = 1 + (int)floorf(log2f(fmaxf(Window::DWWidth, Window::DWHeight))); // 计算最大分辨率
+		int currentWidth = Window::DWWidth;
+		int currentHeight = Window::DWHeight;
+		for (int i = 1; i < numLevels; i++) {
+			glUniform2i(glGetUniformLocation(MipMapShader->ID, "u_previousLevelDimensions"), currentWidth, currentHeight);
+			MipMapShader->setInt("u_previousLevel", i - 1);
+			currentWidth /= 2;
+			currentHeight /= 2;
+			// ensure that the viewport size is always at least 1x1
+			currentWidth = currentWidth > 0 ? currentWidth : 1;
+			currentHeight = currentHeight > 0 ? currentHeight : 1;
+			glViewport(0, 0, currentWidth, currentHeight);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, i);
+			// dummy draw command as the full screen quad is generated completely by a geometry shader
+			renderQuad();
+		}
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, numLevels - 1);
+		// reset the framebuffer configuration
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedo, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gParameter, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gVelo, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+		// reenable color buffer writes, reset viewport and reenable depth test
+		glDepthFunc(GL_LEQUAL);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

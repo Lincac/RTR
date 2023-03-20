@@ -12,9 +12,10 @@
 class DrawWindow : public Window {
 public:
 	DrawWindow() {};
-
-	virtual void RenderWindow(unsigned int textureID = NULL);
-private:
+	virtual ~DrawWindow() override {};
+	virtual void RenderWindow(unsigned int textureID = NULL) override;
+	virtual Message SendMessage() override { return Message(); };
+	virtual void ReciveMessage(Message message) override {};
 };
 
 void DrawWindow::RenderWindow(unsigned int textureID) {

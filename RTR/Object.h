@@ -15,6 +15,8 @@ public:
 	virtual void GbufferRender(std::string renderModeName, std::shared_ptr<Shader> shader) = 0;
 	virtual void temp_render(std::shared_ptr<Shader> shader) = 0;
 
+	virtual std::string GetObjName() { return ""; };
+
 	virtual glm::vec3 GetPosition() { return glm::vec3(1); };
 	virtual glm::vec3 GetScale() { return glm::vec3(1); };
 	virtual glm::vec3 GetRotate() { return glm::vec3(1); };
@@ -30,6 +32,9 @@ std::shared_ptr<Light> light;
 glm::mat4 view;
 glm::mat4 projection;
 
+glm::mat4 preview;
+glm::mat4 preprojection;
+
 std::vector<float> shadowlayer = { camera.farplane / 50.0f,camera.farplane / 25.0f,camera.farplane / 10.0f,camera.farplane / 2.0f };
 
 std::shared_ptr<Shader> tempshader; // Draw mesh objects
@@ -41,6 +46,11 @@ float exposure = 1.0;
 
 bool	OpenSkyBox = false;
 bool OpenHDR = false;
+bool OpenSSAO = false;
+bool OpenSSR = false;
+bool OpenTAA = false;
+
+int offsetindex = 0;
 
 const unsigned int depthmapresolution = 4096;
 

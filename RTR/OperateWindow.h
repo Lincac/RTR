@@ -8,7 +8,10 @@
 class OperateWindow : public Window {
 public:
 	OperateWindow() {};
-	virtual void RenderWindow(unsigned int textureID = NULL);
+	virtual ~OperateWindow() override {};
+	virtual void RenderWindow(unsigned int textureID = NULL) override;
+	virtual Message SendMessage() override { return Message(); };
+	virtual void ReciveMessage(Message message) override {};
 };
 
 void OperateWindow::RenderWindow(unsigned int textureID) {

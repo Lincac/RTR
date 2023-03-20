@@ -19,20 +19,26 @@ public:
 		scale = glm::vec3(1);
 		rotate = glm::vec3(1);
 
+		preModel = glm::mat4(1);
+
 		initVAO();
 	};
+
+	~Cube();
 
 	virtual void render(std::string renderModeName,std::shared_ptr<Shader> shader) override;
 	virtual void GbufferRender(std::string renderModeName, std::shared_ptr<Shader> shader) override;
 	virtual void temp_render(std::shared_ptr<Shader> shader) override;
 
+	virtual std::string GetObjName() override { return name; };
+
 	virtual glm::vec3 GetPosition() override { return position; };
 	virtual glm::vec3 GetScale() override { return scale; };
 	virtual glm::vec3 GetRotate() override { return rotate; };
 
-	virtual void SetPosition(glm::vec3 pos) { position = pos; };
-	virtual void SetScale(glm::vec3 sc) { scale = sc; };
-	virtual void SetRotate(glm::vec3 ro) { rotate = ro; };
+	virtual void SetPosition(glm::vec3 pos)override { position = pos; };
+	virtual void SetScale(glm::vec3 sc)override { scale = sc; };
+	virtual void SetRotate(glm::vec3 ro) override { rotate = ro; };
 private: 
 	std::string name;
 	glm::vec3 position;
@@ -46,8 +52,19 @@ private:
 	unsigned int Roughness;
 	unsigned int Ao;
 
+	glm::mat4 preModel;
+
 	void initVAO();
 };
+
+Cube::~Cube() {
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteTextures(1, &Albedo);
+	glDeleteTextures(1, &Normal);
+	glDeleteTextures(1, &Metallic);
+	glDeleteTextures(1, &Roughness);
+	glDeleteTextures(1, &Ao);
+}
 
 void Cube::render(std::string renderModeName,std::shared_ptr<Shader> shader)  {
 	glm::mat4 model = glm::mat4(1);
@@ -127,7 +144,7 @@ void Cube::render(std::string renderModeName,std::shared_ptr<Shader> shader)  {
 		glActiveTexture(GL_TEXTURE7);
 		glBindTexture(GL_TEXTURE_2D, TexMap.at("LUTMap"));
 		glActiveTexture(GL_TEXTURE8);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, TexMap.at("shadowMap"));
+		glBindTexture(GL_TEXTURE_2D_ARRAY, TexMap.at("CSM"));
 	}
 
 	glBindVertexArray(VAO);
@@ -145,6 +162,17 @@ void Cube::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> sha
 	shader->setMat4("model", model);
 	shader->setMat4("view", view);
 	shader->setMat4("projection", projection);
+
+	shader->setMat4("preProjection", preprojection);
+	shader->setMat4("preView", preview);
+	shader->setMat4("preModel", preModel);
+
+	shader->setFloat("scr_width", (float)Window::DWWidth);
+	shader->setFloat("scr_height", (float)Window::DWHeight);
+	shader->setInt("offsetindex", offsetindex % 8);
+
+	shader->setFloat("NEAR", camera.nearplane);
+	shader->setFloat("FAR", camera.farplane);
 	if (renderModeName == "BlinPhone")
 	{
 		shader->setInt("Albedo", 0);
@@ -152,6 +180,7 @@ void Cube::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> sha
 
 		shader->setFloat("Gloss", Gloss);
 		shader->setBool("OpenNormalMap", Normal == 0 ? false : true);
+		shader->setBool("OpenSSR", false);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Albedo);
@@ -180,6 +209,8 @@ void Cube::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> sha
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
+
+	preModel = model;
 }
 
 void Cube::temp_render(std::shared_ptr<Shader> shader) {

@@ -9,6 +9,7 @@
 class SSAOPass : public RenderHelp {
 public:
 	SSAOPass();
+	~SSAOPass();
 	virtual void RenderPass(std::shared_ptr<Objects> objs, std::string renderModeName = "") override;
 private:
 	unsigned int SSAOFBO;
@@ -22,9 +23,8 @@ private:
 	std::shared_ptr<Shader> ssaoshader;
 	std::shared_ptr<Shader> ssaoblurshader;
 };
-SSAOPass::SSAOPass() {
-	TexMap.emplace("SSAO", ssaoblurTexture);
 
+SSAOPass::SSAOPass() {
 	ssaoshader = std::make_shared<Shader>("shader/ssao/ssao.vs", "shader/ssao/ssao.fs");
 	ssaoblurshader = std::make_shared<Shader>("shader/ssao/ssaoblur.vs", "shader/ssao/ssaoblur.fs");
 
@@ -58,7 +58,7 @@ SSAOPass::SSAOPass() {
 
 	glGenTextures(1, &noiseTexture);
 	glBindTexture(GL_TEXTURE_2D, noiseTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaonoise);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaonoise[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -66,27 +66,50 @@ SSAOPass::SSAOPass() {
 
 	glGenFramebuffers(1, &SSAOFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, SSAOFBO);
-	ssaoTexture = GenerateTexture2D(Window::DWWidth, Window::DWHeight);
+
+	glGenTextures(1, &ssaoTexture);
 	glBindTexture(GL_TEXTURE_2D, ssaoTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, Window::DWWidth, Window::DWHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoTexture, 0);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "error to compile ssao";
 
 	glGenFramebuffers(1, &SSAOBlurFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, SSAOBlurFBO);
-	ssaoblurTexture = GenerateTexture2D(Window::DWWidth, Window::DWHeight);
+
+	glGenTextures(1, &ssaoblurTexture);
 	glBindTexture(GL_TEXTURE_2D, ssaoblurTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, Window::DWWidth, Window::DWHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoblurTexture, 0);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "error to compile ssaoblur";
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	TexMap.emplace("SSAO", ssaoblurTexture);
+}
+
+SSAOPass::~SSAOPass() {
+	glDeleteFramebuffers(1, &SSAOFBO);
+	glDeleteTextures(1, &ssaoTexture);
+	glDeleteFramebuffers(1, &SSAOBlurFBO);
+	glDeleteTextures(1, &ssaoblurTexture);
+	glDeleteTextures(1, &noiseTexture);
 }
 
 void SSAOPass::RenderPass(std::shared_ptr<Objects> objs, std::string renderModeName) {
+	// ssao 
 	glBindFramebuffer(GL_FRAMEBUFFER, SSAOFBO);
 	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	ssaoshader->use();
+	ssaoshader->setInt("gPosition", 0);
+	ssaoshader->setInt("gNormal", 1);
+	ssaoshader->setInt("noiseTexture", 2);
+
 	for (size_t i = 0; i < 64; i++)
 		ssaoshader->setVec3("sampler[" + std::to_string(i) + "]", ssaoKernel[i]);
 	ssaoshader->setMat4("projection", projection);
@@ -101,6 +124,7 @@ void SSAOPass::RenderPass(std::shared_ptr<Objects> objs, std::string renderModeN
 	glBindTexture(GL_TEXTURE_2D, noiseTexture);
 	renderQuad();
 
+	// ssaoblur
 	glBindFramebuffer(GL_FRAMEBUFFER, SSAOBlurFBO);
 	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

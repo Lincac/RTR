@@ -10,7 +10,9 @@ public:
 	Sphere(std::string n) {
 		name = n;
 		Gloss = 120;
+		//Albedo = TexMap.at("White");
 		Albedo = LoadTexture("image/pbr/gold/albedo.png");
+		//Normal = 0;
 		Normal = LoadTexture("image/pbr/gold/normal.png");
 		Metallic = LoadTexture("image/pbr/gold/metallic.png");
 		Roughness = LoadTexture("image/pbr/gold/roughness.png");
@@ -19,6 +21,8 @@ public:
 		position = glm::vec3(0,2,0);
 		scale = glm::vec3(1);
 		rotate = glm::vec3(1);
+
+		preModel = glm::mat4(1);
 
 		initVAO();
 	};
@@ -29,13 +33,15 @@ public:
 	virtual void GbufferRender(std::string renderModeName, std::shared_ptr<Shader> shader) override;
 	virtual void temp_render(std::shared_ptr<Shader> shader) override;
 
-	virtual glm::vec3 GetPosition() { return position; };
-	virtual glm::vec3 GetScale() { return scale; };
-	virtual glm::vec3 GetRotate() { return rotate; };
+	virtual std::string GetObjName() override { return name; };
 
-	virtual void SetPosition(glm::vec3 pos) { position = pos; };
-	virtual void SetScale(glm::vec3 sc) { scale = sc; };
-	virtual void SetRotate(glm::vec3 ro) { rotate = ro; };
+	virtual glm::vec3 GetPosition() override { return position; };
+	virtual glm::vec3 GetScale() override { return scale; };
+	virtual glm::vec3 GetRotate() override { return rotate; };
+
+	virtual void SetPosition(glm::vec3 pos)override { position = pos; };
+	virtual void SetScale(glm::vec3 sc)override { scale = sc; };
+	virtual void SetRotate(glm::vec3 ro) override { rotate = ro; };
 private:
 	std::string name;
 	glm::vec3 position;
@@ -49,6 +55,8 @@ private:
 	unsigned int Metallic;
 	unsigned int Roughness;
 	unsigned int Ao;
+
+	glm::mat4 preModel;
 
 	void initVAO();
 };
@@ -153,6 +161,17 @@ void Sphere::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> s
 	shader->setMat4("model", model);
 	shader->setMat4("view", view);
 	shader->setMat4("projection", projection);
+
+	shader->setMat4("preProjection", preprojection);
+	shader->setMat4("preView", preview);
+	shader->setMat4("preModel", preModel);
+
+	shader->setFloat("scr_width", (float)Window::DWWidth);
+	shader->setFloat("scr_height", (float)Window::DWHeight);
+	shader->setInt("offsetindex", offsetindex % 8);
+
+	shader->setFloat("NEAR", camera.nearplane);
+	shader->setFloat("FAR", camera.farplane);
 	if (renderModeName == "BlinPhone")
 	{
 		shader->setInt("Albedo", 0);
@@ -160,6 +179,7 @@ void Sphere::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> s
 
 		shader->setFloat("Gloss", Gloss);
 		shader->setBool("OpenNormalMap", Normal == 0 ? false : true);
+		shader->setBool("OpenSSR", false);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Albedo);
@@ -188,6 +208,8 @@ void Sphere::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> s
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+
+	preModel = model;
 }
 
 void Sphere::temp_render(std::shared_ptr<Shader> shader) {

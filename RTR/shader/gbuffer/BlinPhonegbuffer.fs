@@ -4,11 +4,15 @@ layout (location = 0) out vec4 gPosition;
 layout (location = 1) out vec4 gNormal;
 layout (location = 2) out vec4 gAlbedo;
 layout (location = 3) out vec4 gParameter;
+layout (location = 4) out vec2 gVelo;
 
 in V_out{
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
+
+    vec4 nowPos;
+    vec4 prePos;
 }fs_in;
 
 uniform sampler2D Albedo;
@@ -16,6 +20,15 @@ uniform sampler2D Normal;
 
 uniform float Gloss;
 uniform bool OpenNormalMap;
+uniform bool OpenSSR;
+
+uniform float NEAR; // 投影矩阵的近平面
+uniform float FAR; // 投影矩阵的远平面
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // 回到NDC
+    return (2.0 * NEAR * FAR) / (FAR + NEAR - z * (FAR - NEAR));    
+}
 
 vec3 getNormalFromMap(){
     vec3 tangentNormal = texture(Normal, fs_in.TexCoords).xyz * 2.0 - 1.0;
@@ -35,8 +48,13 @@ vec3 getNormalFromMap(){
 
 void main(){
     gPosition.xyz = fs_in.FragPos;
+    gPosition.a = LinearizeDepth(gl_FragCoord.z) / FAR;
     gNormal.xyz = OpenNormalMap ? getNormalFromMap() : fs_in.Normal;
     gAlbedo.rgb = texture(Albedo,fs_in.TexCoords).rgb;
+    gAlbedo.a = Gloss;
+    gParameter = OpenSSR ? vec4(1.0) : vec4(0.0);
 
-    gParameter = vec4(1);
+    vec2 nPos = (fs_in.nowPos.xy / fs_in.nowPos.w) * 0.5 + 0.5;
+    vec2 pPos = (fs_in.prePos.xy / fs_in.prePos.w) * 0.5 + 0.5;
+    gVelo.rg = nPos - pPos;
 }

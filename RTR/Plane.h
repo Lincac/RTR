@@ -10,7 +10,8 @@ public:
 	Plane(std::string n) {
 		name = n;
 		Gloss = 120;
-		Albedo = TexMap.at("White");
+		//Albedo = TexMap.at("White");
+		Albedo = LoadTexture("image/pbr/gold/albedo.png");
 		Normal = 0;
 		Metallic = 0;
 		Roughness = 0;
@@ -19,20 +20,26 @@ public:
 		scale = glm::vec3(1);
 		rotate = glm::vec3(1);
 
+		preModel = glm::mat4(1);
+
 		initVAO();
 	};
+
+	~Plane();
 
 	virtual void render(std::string renderModeName, std::shared_ptr<Shader> shader) override;
 	virtual void GbufferRender(std::string renderModeName, std::shared_ptr<Shader> shader) override;
 	virtual void temp_render(std::shared_ptr<Shader> shader) override;
 
-	virtual glm::vec3 GetPosition() { return position; };
-	virtual glm::vec3 GetScale() { return scale; };
-	virtual glm::vec3 GetRotate() { return rotate; };
+	virtual std::string GetObjName() override { return name; };
 
-	virtual void SetPosition(glm::vec3 pos) { position = pos; };
-	virtual void SetScale(glm::vec3 sc) { scale = sc; };
-	virtual void SetRotate(glm::vec3 ro) { rotate = ro; };
+	virtual glm::vec3 GetPosition() override { return position; };
+	virtual glm::vec3 GetScale() override { return scale; };
+	virtual glm::vec3 GetRotate() override { return rotate; };
+
+	virtual void SetPosition(glm::vec3 pos)override { position = pos; };
+	virtual void SetScale(glm::vec3 sc)override { scale = sc; };
+	virtual void SetRotate(glm::vec3 ro) override { rotate = ro; };
 private:
 	std::string name;
 	glm::vec3 position;
@@ -46,8 +53,19 @@ private:
 	unsigned int Roughness;
 	unsigned int Ao;
 
+	glm::mat4 preModel;
+
 	void initVAO();
 };
+
+Plane::~Plane() {
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteTextures(1, &Albedo);
+	glDeleteTextures(1, &Normal);
+	glDeleteTextures(1, &Metallic);
+	glDeleteTextures(1, &Roughness);
+	glDeleteTextures(1, &Ao);
+}
 
 void Plane::render(std::string renderModeName, std::shared_ptr<Shader> shader) {
 	glm::mat4 model = glm::mat4(1);
@@ -127,7 +145,7 @@ void Plane::render(std::string renderModeName, std::shared_ptr<Shader> shader) {
 		glActiveTexture(GL_TEXTURE7);
 		glBindTexture(GL_TEXTURE_2D, TexMap.at("LUTMap"));
 		glActiveTexture(GL_TEXTURE8);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, TexMap.at("shadowMap"));
+		glBindTexture(GL_TEXTURE_2D_ARRAY, TexMap.at("CSM"));
 	}
 
 	glBindVertexArray(VAO);
@@ -145,6 +163,17 @@ void Plane::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> sh
 	shader->setMat4("model", model);
 	shader->setMat4("view", view);
 	shader->setMat4("projection", projection);
+
+	shader->setMat4("preProjection", preprojection);
+	shader->setMat4("preView", preview);
+	shader->setMat4("preModel", preModel);
+
+	shader->setFloat("scr_width", (float)Window::DWWidth);
+	shader->setFloat("scr_height", (float)Window::DWHeight);
+	shader->setInt("offsetindex", offsetindex % 8);
+
+	shader->setFloat("NEAR", camera.nearplane);
+	shader->setFloat("FAR", camera.farplane);
 	if (renderModeName == "BlinPhone")
 	{
 		shader->setInt("Albedo", 0);
@@ -152,6 +181,7 @@ void Plane::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> sh
 
 		shader->setFloat("Gloss", Gloss);
 		shader->setBool("OpenNormalMap", Normal == 0 ? false : true);
+		shader->setBool("OpenSSR", true);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Albedo);
@@ -180,6 +210,8 @@ void Plane::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> sh
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
+
+	preModel = model;
 }
 
 void Plane::temp_render(std::shared_ptr<Shader> shader) {

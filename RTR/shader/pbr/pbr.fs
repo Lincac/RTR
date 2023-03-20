@@ -180,8 +180,7 @@ vec3 getNormalFromMap(){
 }
 
 void main(){
-    //vec3 albedo = pow(texture(Albedo,fs_in.TexCoords).rgb,vec3(2.2));
-    vec3 albedo = texture(Albedo,fs_in.TexCoords).rgb;
+    vec3 albedo = pow(texture(Albedo,fs_in.TexCoords).rgb,vec3(2.2));
     vec3 normal = getNormalFromMap();
     float metallic = texture(Metallic,fs_in.TexCoords).r;
     float roughness = texture(Roughness,fs_in.TexCoords).r;

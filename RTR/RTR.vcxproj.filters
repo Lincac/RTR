@@ -166,5 +166,8 @@
     <ClInclude Include="CSMPass.h">
       <Filter>RenderHelp\Header</Filter>
     </ClInclude>
+    <ClInclude Include="Cartoon.h">
+      <Filter>RenderMode</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

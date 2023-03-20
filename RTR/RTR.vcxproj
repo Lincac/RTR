@@ -153,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Cartoon.h" />
     <ClInclude Include="CSMPass.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="DirectionalLight.h" />

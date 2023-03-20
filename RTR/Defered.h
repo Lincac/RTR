@@ -4,6 +4,7 @@
 #define DEFERED_H
 
 #include"RenderPath.h"
+#include"TAAPass.h"
 
 class Defered : public RenderPath {
 public:
@@ -13,14 +14,12 @@ public:
 private:
 	unsigned int FBO;
 	unsigned int textureID;
-	bool OpenSSAO;
-	bool OpenSSR;
-	bool OpenTAA;
 	std::shared_ptr<RenderMode> renderMode;
 protected:
 	unsigned int HDRFBO;
 	unsigned int HDRtextureID;
 	virtual void HDR(std::shared_ptr<Objects> objs) override;
+	std::shared_ptr<TAAPass> taa;
 };
 
 Defered::Defered(std::shared_ptr<RenderMode> mode) {
@@ -29,9 +28,9 @@ Defered::Defered(std::shared_ptr<RenderMode> mode) {
 
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Window::DWWidth, Window::DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Window::DWWidth, Window::DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "Forawrd Framebuffer not complete!" << std::endl;
@@ -50,11 +49,10 @@ Defered::Defered(std::shared_ptr<RenderMode> mode) {
 		std::cout << "Forward HDR Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	OpenSSAO = false;
-	OpenSSR = false;
-	OpenTAA = false;
+	TexMap.emplace("HDR",HDRtextureID);
 
 	renderMode = mode;
+	taa = std::make_shared<TAAPass>();
 }
 
 Defered::~Defered() {
@@ -69,10 +67,11 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 	std::shared_ptr<RenderHelp> gbuffer = passes.at("gbuffer");
 	gbuffer->RenderPass(objs, renderMode->getRenderModeName());
 
+	// defered shading
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
 	glClearColor(BackGround.x, BackGround.y, BackGround.z, 1.0);
-	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	renderMode->DRender();
 
 	// 获取 gbuffer 的深度
@@ -98,45 +97,47 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO); // 写入到默认帧缓冲
 	glBlitFramebuffer(0, 0, Window::DWWidth, Window::DWHeight, 0, 0, Window::DWWidth, Window::DWHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
+	// taa
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
+	glClearColor(1.0,1.0,1.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	taa->shader->use();
+	taa->shader->setInt("currentcolor",0);
+	taa->shader->setInt("historycolor", 0);
+	taa->shader->setInt("gVelo", 0);
+	taa->shader->setInt("gPosition", 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, taa->historycolor);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, TexMap.at("gVelo"));
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, TexMap.at("gPosition"));
+	renderQuad();
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, taa->historyframe);
+	glBlitFramebuffer(0, 0, Window::DWWidth, Window::DWHeight, 0, 0, Window::DWWidth, Window::DWHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	if (OpenSSR && renderMode->getRenderModeName() == "BlinPhone")
+	{
+		TexMap.emplace("AlbedoRendered", taa->historycolor);
+		std::shared_ptr<RenderHelp> ssr = passes.at("ssr");
+		ssr->RenderPass(objs);
+	}
+
+	HDR(objs);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Window::scr_WIDTH, Window::scr_HEIGHT);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	if (OpenHDR) {
-		HDR(objs);
-		return HDRtextureID;
-	}
-	else
-		return textureID;
+	return HDRtextureID;
 }
 
 void Defered::HDR(std::shared_ptr<Objects> objs) {
-	if (OpenSSAO)
-	{
-		std::shared_ptr<RenderHelp> ssao = passes.at("SSAOPass");
-		ssao->RenderPass(objs);
-	}
-
-	if (OpenSSR)
-	{
-		std::shared_ptr<RenderHelp> gbuffer = passes.at("GBufferPass");
-		gbuffer->RenderPass(objs);
-		std::shared_ptr<RenderHelp> ssao = passes.at("SSAOPass");
-		ssao->RenderPass(objs);
-	}
-
-	if (OpenTAA && OpenSSR)
-	{
-		std::shared_ptr<RenderHelp> taa = passes.at("SSAOPass");
-		taa->RenderPass(objs);
-	}
-	else {
-		std::shared_ptr<RenderHelp> gbuffer = passes.at("GBufferPass");
-		gbuffer->RenderPass(objs);
-		std::shared_ptr<RenderHelp> taa = passes.at("SSAOPass");
-		taa->RenderPass(objs);
-	}
-
 	glBindFramebuffer(GL_FRAMEBUFFER, HDRFBO);
 	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -148,12 +149,11 @@ void Defered::HDR(std::shared_ptr<Objects> objs) {
 	processshader->setBool("OpenSSAO", OpenSSAO);
 	processshader->setBool("OpenSSR", OpenSSR);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureID);
+	glBindTexture(GL_TEXTURE_2D, taa->historycolor);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, TexMap.at("SSAO"));
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, TexMap.at("SSR"));
 	renderQuad();
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 #endif // !DEFERED_H

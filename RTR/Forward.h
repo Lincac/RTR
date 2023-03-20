@@ -13,9 +13,6 @@ public:
 private:
 	unsigned int FBO;
 	unsigned int textureID;
-	bool OpenSSAO;
-	bool OpenSSR;
-	bool OpenTAA;
 	std::shared_ptr<RenderMode> renderMode;
 protected:
 	unsigned int HDRFBO;
@@ -32,6 +29,10 @@ Forward::Forward(std::shared_ptr<RenderMode> mode) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+
+	//glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID);
+	//glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, Window::DWWidth, Window::DWHeight, GL_TRUE);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureID, 0);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "Forawrd Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -45,13 +46,13 @@ Forward::Forward(std::shared_ptr<RenderMode> mode) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, HDRtextureID, 0);
+
+	//glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, HDRtextureID);
+	//glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA16F, Window::DWWidth, Window::DWHeight, GL_TRUE);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, HDRtextureID, 0);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "Forward HDR Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	OpenSSAO = false;
-	OpenSSR = false;
-	OpenTAA = false;
 
 	renderMode = mode;
 }
@@ -64,10 +65,20 @@ Forward::~Forward() {
 }
 
 unsigned int Forward::Render(std::shared_ptr<Objects> objs) {
+	if (OpenSSR && renderMode->getRenderModeName() == "BlinPhone")
+	{
+		std::shared_ptr<RenderHelp> gbuffer = passes.at("gbuffer");
+		gbuffer->RenderPass(objs, renderMode->getRenderModeName());
+		std::shared_ptr<RenderHelp> ssr = passes.at("ssr");
+		ssr->RenderPass(objs);
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
 	glClearColor(BackGround.x, BackGround.y, BackGround.z, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_MULTISAMPLE);
+
 	renderMode->Render(objs);
 
 	light->RenderLight(view,projection,camera.Position);
@@ -87,48 +98,21 @@ unsigned int Forward::Render(std::shared_ptr<Objects> objs) {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO); // –¥»ÎµΩƒ¨»œ÷°ª∫≥Â
 	glBlitFramebuffer(0, 0, Window::DWWidth, Window::DWHeight, 0, 0, Window::DWWidth, Window::DWHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
+	HDR(objs);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Window::scr_WIDTH, Window::scr_HEIGHT);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	if (OpenHDR) {
-		HDR(objs);
-		return HDRtextureID;
-	}
-	else
-		return textureID;
+	return HDRtextureID;
 }
 
 void Forward::HDR(std::shared_ptr<Objects> objs) {
-	if (OpenSSAO)
-	{
-		std::shared_ptr<RenderHelp> ssao = passes.at("SSAOPass");
-		ssao->RenderPass(objs);
-	}
-
-	if (OpenSSR)
-	{
-		std::shared_ptr<RenderHelp> gbuffer = passes.at("GBufferPass");
-		gbuffer->RenderPass(objs);
-		std::shared_ptr<RenderHelp> ssao = passes.at("SSAOPass");
-		ssao->RenderPass(objs);
-	}
-
-	if (OpenTAA && OpenSSR)
-	{
-		std::shared_ptr<RenderHelp> taa = passes.at("SSAOPass");
-		taa->RenderPass(objs);
-	}
-	else {
-		std::shared_ptr<RenderHelp> gbuffer = passes.at("GBufferPass");
-		gbuffer->RenderPass(objs);
-		std::shared_ptr<RenderHelp> taa = passes.at("SSAOPass");
-		taa->RenderPass(objs);
-	}
-
 	glBindFramebuffer(GL_FRAMEBUFFER, HDRFBO);
 	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_MULTISAMPLE);
+
 	processshader->use();
 	processshader->setInt("HDR", 0);
 	processshader->setInt("SSAO", 1);
