@@ -7,16 +7,24 @@
 
 class Plane :public Object {
 public:
-	Plane(std::string n) {
+	Plane(std::string n, std::string renderModeName) {
 		name = n;
-		Gloss = 120;
-		//Albedo = TexMap.at("White");
-		Albedo = LoadTexture("image/pbr/gold/albedo.png");
-		Normal = 0;
-		Metallic = 0;
-		Roughness = 0;
-		Ao = 0;
-		position = glm::vec3(0,-1,0);
+
+		if (renderModeName == "PBR")
+		{
+			Albedo = LoadTexture("image/pbr/wall/wall_albedo.png");
+			Normal = LoadTexture("image/pbr/wall/wall_normal.png");
+			Metallic = LoadTexture("image/pbr/wall/wall_metallic.png");
+			Roughness = LoadTexture("image/pbr/wall/wall_roughness.png");
+			Ao = LoadTexture("image/pbr/wall/wall_ao.png");
+		}
+		else {
+			Gloss = 120;
+			Albedo = ChartletMap.at("White");
+			Normal = 0;
+		}
+
+		position = glm::vec3(0);
 		scale = glm::vec3(1);
 		rotate = glm::vec3(1);
 
@@ -168,8 +176,8 @@ void Plane::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> sh
 	shader->setMat4("preView", preview);
 	shader->setMat4("preModel", preModel);
 
-	shader->setFloat("scr_width", (float)Window::DWWidth);
-	shader->setFloat("scr_height", (float)Window::DWHeight);
+	shader->setFloat("scr_width", (float)DWWidth);
+	shader->setFloat("scr_height", (float)DWHeight);
 	shader->setInt("offsetindex", offsetindex % 8);
 
 	shader->setFloat("NEAR", camera.nearplane);

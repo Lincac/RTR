@@ -8,7 +8,8 @@
 #include<unordered_map>
 #include<stb_image.h>
 
- std::unordered_map<std::string, unsigned int> TexMap; // 执行效率更高
+ std::unordered_map<std::string, unsigned int> TexMap; // 执行效率更高  生成的纹理
+ std::unordered_map<std::string, unsigned int> ChartletMap;  // 加载的纹理
 
 unsigned int GenerateTexture2D(unsigned int w, unsigned int h) {
 	unsigned int texture;

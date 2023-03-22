@@ -69,7 +69,7 @@ SSAOPass::SSAOPass() {
 
 	glGenTextures(1, &ssaoTexture);
 	glBindTexture(GL_TEXTURE_2D, ssaoTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, Window::DWWidth, Window::DWHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, DWWidth, DWHeight, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoTexture, 0);
@@ -81,7 +81,7 @@ SSAOPass::SSAOPass() {
 
 	glGenTextures(1, &ssaoblurTexture);
 	glBindTexture(GL_TEXTURE_2D, ssaoblurTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, Window::DWWidth, Window::DWHeight, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, DWWidth, DWHeight, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoblurTexture, 0);
@@ -103,7 +103,7 @@ SSAOPass::~SSAOPass() {
 void SSAOPass::RenderPass(std::shared_ptr<Objects> objs, std::string renderModeName) {
 	// ssao 
 	glBindFramebuffer(GL_FRAMEBUFFER, SSAOFBO);
-	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
+	glViewport(0, 0, DWWidth, DWHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	ssaoshader->use();
 	ssaoshader->setInt("gPosition", 0);
@@ -114,8 +114,8 @@ void SSAOPass::RenderPass(std::shared_ptr<Objects> objs, std::string renderModeN
 		ssaoshader->setVec3("sampler[" + std::to_string(i) + "]", ssaoKernel[i]);
 	ssaoshader->setMat4("projection", projection);
 	ssaoshader->setMat4("view", view);
-	ssaoshader->setFloat("SCR_WIDTH", (float)Window::DWWidth);
-	ssaoshader->setFloat("SCR_HEIGHT", (float)Window::DWHeight);
+	ssaoshader->setFloat("SCR_WIDTH", (float)DWWidth);
+	ssaoshader->setFloat("SCR_HEIGHT", (float)DWHeight);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, TexMap.at("gPosition"));
 	glActiveTexture(GL_TEXTURE1);
@@ -126,7 +126,7 @@ void SSAOPass::RenderPass(std::shared_ptr<Objects> objs, std::string renderModeN
 
 	// ssaoblur
 	glBindFramebuffer(GL_FRAMEBUFFER, SSAOBlurFBO);
-	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
+	glViewport(0, 0, DWWidth, DWHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	ssaoblurshader->use();
 	glActiveTexture(GL_TEXTURE0);

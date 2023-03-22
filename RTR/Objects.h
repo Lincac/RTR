@@ -10,7 +10,7 @@
 class Objects : public Object{
 public:
 	Objects() {};
-
+	virtual ~Objects() override {};
 	void add(std::shared_ptr<Object> obj) { objs.push_back(obj); }
 	virtual void render(std::string renderModeName,std::shared_ptr<Shader> shader) override;
 	virtual void GbufferRender(std::string renderModeName, std::shared_ptr<Shader> shader) override;

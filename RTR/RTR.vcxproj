@@ -166,7 +166,6 @@
     <ClInclude Include="PrefilterPass.h" />
     <ClInclude Include="RenderHelp.h" />
     <ClInclude Include="Light.h" />
-    <ClInclude Include="Message.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Objects.h" />
     <ClInclude Include="ObjectWindow.h" />

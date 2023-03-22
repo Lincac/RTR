@@ -42,7 +42,7 @@ void DirectionalLight::RenderLight(glm::mat4 view,glm::mat4 projection,glm::vec3
 	lightShader->setVec3("lightCol", color);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, TexMap.at("DirectionLight"));
+	glBindTexture(GL_TEXTURE_2D, ChartletMap.at("DirectionLight"));
 	LightQuad();
 }
 

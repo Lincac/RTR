@@ -3,14 +3,19 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include"Window.h"
 #include"Camera.h"
 #include"DirectionalLight.h"
 #include"PointLight.h"
 #include"SpotLight.h"
 
+extern const  unsigned int DWWidth;
+extern const  unsigned int DWHeight;
+extern const  unsigned int scr_WIDTH;
+extern const  unsigned int scr_HEIGHT;
+
 class Object {
 public:
+	virtual ~Object() {};
 	virtual void render(std::string renderModeName, std::shared_ptr<Shader> shader)  = 0;
 	virtual void GbufferRender(std::string renderModeName, std::shared_ptr<Shader> shader) = 0;
 	virtual void temp_render(std::shared_ptr<Shader> shader) = 0;
@@ -24,9 +29,22 @@ public:
 	virtual void SetPosition(glm::vec3 pos) {};
 	virtual void SetScale(glm::vec3 sc) {};
 	virtual void SetRotate(glm::vec3 ro) {};
+
+	virtual unsigned int GetAlbedo() { return 0; }
+	virtual unsigned int GetNormal() { return 0; }
+	virtual unsigned int GetMetallic() { return 0; }
+	virtual unsigned int GetRoughness() { return 0; }
+	virtual unsigned int GetAo() { return 0; }
+
+	virtual void SetAlbedo(unsigned int ID) {  }
+	virtual void SetNormal(unsigned int ID) {  }
+	virtual void SetMetallic(unsigned int ID) {  }
+	virtual void SetRoughness(unsigned int ID) {  }
+	virtual void SetAo(unsigned int ID) {  }
+
 };
 
-Camera camera(glm::vec3(0, 2, 5));
+Camera camera(glm::vec3(0, 0, 5));
 std::shared_ptr<Light> light;
 
 glm::mat4 view;
@@ -245,7 +263,7 @@ std::vector<glm::vec4> getFrustumCornersWorldSpace(glm::mat4 pro, glm::mat4 vie)
 
 glm::mat4 getLightVP(const float& near, const float& far) {
 
-	const auto proj = glm::perspective(glm::radians(camera.Zoom), (float)Window::DWWidth / (float)Window::DWHeight, near, far);
+	const auto proj = glm::perspective(glm::radians(camera.Zoom), (float)DWWidth / (float)DWHeight, near, far);
 
 	const auto centers = getFrustumCornersWorldSpace(proj, camera.GetViewMatrix());
 

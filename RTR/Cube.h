@@ -7,14 +7,23 @@
 
 class Cube : public Object {
 public: 
-	Cube(std::string n) {
+	Cube(std::string n,std::string renderModeName) {
 		name = n;
-		Gloss = 120;
-		Albedo = TexMap.at("White");
-		Normal = 0;
-		Metallic = 0;
-		Roughness = 0;
-		Ao = 0;
+
+		if (renderModeName == "PBR")
+		{
+			Albedo = LoadTexture("image/pbr/plastic/plastic_albedo.png");
+			Normal = LoadTexture("image/pbr/plastic/plastic_normal.png");
+			Metallic = LoadTexture("image/pbr/plastic/plastic_metallic.png");
+			Roughness = LoadTexture("image/pbr/plastic/plastic_roughness.png");
+			Ao = LoadTexture("image/pbr/plastic/plastic_ao.png");
+		}
+		else {
+			Gloss = 120;
+			Albedo = ChartletMap.at("White");
+			Normal = 0;
+		}
+
 		position = glm::vec3(0);
 		scale = glm::vec3(1);
 		rotate = glm::vec3(1);
@@ -167,8 +176,8 @@ void Cube::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> sha
 	shader->setMat4("preView", preview);
 	shader->setMat4("preModel", preModel);
 
-	shader->setFloat("scr_width", (float)Window::DWWidth);
-	shader->setFloat("scr_height", (float)Window::DWHeight);
+	shader->setFloat("scr_width", (float)DWWidth);
+	shader->setFloat("scr_height", (float)DWHeight);
 	shader->setInt("offsetindex", offsetindex % 8);
 
 	shader->setFloat("NEAR", camera.nearplane);

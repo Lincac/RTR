@@ -7,18 +7,25 @@
 
 class Sphere : public Object {
 public:
-	Sphere(std::string n) {
+	Sphere(std::string n, std::string renderModeName) {
 		name = n;
-		Gloss = 120;
-		//Albedo = TexMap.at("White");
-		Albedo = LoadTexture("image/pbr/gold/albedo.png");
-		//Normal = 0;
-		Normal = LoadTexture("image/pbr/gold/normal.png");
-		Metallic = LoadTexture("image/pbr/gold/metallic.png");
-		Roughness = LoadTexture("image/pbr/gold/roughness.png");
-		Ao = LoadTexture("image/pbr/gold/ao.png");
+
+		if (renderModeName == "PBR")
+		{
+			Albedo = LoadTexture("image/pbr/rusted_iron/rusted_iron_albedo.png");
+			Normal = LoadTexture("image/pbr/rusted_iron/rusted_iron_normal.png");
+			Metallic = LoadTexture("image/pbr/rusted_iron/rusted_iron_metallic.png");
+			Roughness = LoadTexture("image/pbr/rusted_iron/rusted_iron_roughness.png");
+			Ao = LoadTexture("image/pbr/rusted_iron/rusted_iron_ao.png");
+		}
+		else {
+			Gloss = 120;
+			Albedo = ChartletMap.at("White");
+			Normal = 0;
+		}
+
 		indexCount = 0;
-		position = glm::vec3(0,2,0);
+		position = glm::vec3(0);
 		scale = glm::vec3(1);
 		rotate = glm::vec3(1);
 
@@ -42,6 +49,19 @@ public:
 	virtual void SetPosition(glm::vec3 pos)override { position = pos; };
 	virtual void SetScale(glm::vec3 sc)override { scale = sc; };
 	virtual void SetRotate(glm::vec3 ro) override { rotate = ro; };
+
+	virtual unsigned int GetAlbedo()override { return Albedo; }
+	virtual unsigned int GetNormal() override { return Normal; }
+	virtual unsigned int GetMetallic()override { return Metallic; }
+	virtual unsigned int GetRoughness()override { return Roughness; }
+	virtual unsigned int GetAo() override { return Ao; }
+
+	virtual void SetAlbedo(unsigned int ID) override { Albedo = ID; }
+	virtual void SetNormal(unsigned int ID) override { Normal = ID; }
+	virtual void SetMetallic(unsigned int ID)override { Metallic = ID; }
+	virtual void SetRoughness(unsigned int ID) override { Roughness = ID; }
+	virtual void SetAo(unsigned int ID) override { Ao = ID; }
+
 private:
 	std::string name;
 	glm::vec3 position;
@@ -166,8 +186,8 @@ void Sphere::GbufferRender(std::string renderModeName, std::shared_ptr<Shader> s
 	shader->setMat4("preView", preview);
 	shader->setMat4("preModel", preModel);
 
-	shader->setFloat("scr_width", (float)Window::DWWidth);
-	shader->setFloat("scr_height", (float)Window::DWHeight);
+	shader->setFloat("scr_width", (float)DWWidth);
+	shader->setFloat("scr_height", (float)DWHeight);
 	shader->setInt("offsetindex", offsetindex % 8);
 
 	shader->setFloat("NEAR", camera.nearplane);

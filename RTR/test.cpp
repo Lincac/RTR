@@ -6,7 +6,8 @@
 	3.8~3.9 :  完成BlinPhone模型测试
 	3.13~3.14 : 完成前向渲染和延迟渲染场景
 	3.15 : 添加了延迟渲染TAA
-	等待完成SSR...
+	3.20: SSR完成！
+	准备界面完善！！！
 */
 #include"Program.h"
 
@@ -31,7 +32,7 @@ int main() {
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(Window::scr_WIDTH, Window::scr_HEIGHT, "RTR", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(scr_WIDTH, scr_HEIGHT, "RTR", NULL, NULL);
 
 	if (window == NULL)
 	{
@@ -60,7 +61,7 @@ int main() {
 	program.Init();
 
 	preview = camera.GetViewMatrix();
-	preprojection = glm::perspective(glm::radians(camera.Zoom), (float)Window::DWWidth / (float)Window::DWHeight, camera.nearplane, camera.farplane);
+	preprojection = glm::perspective(glm::radians(camera.Zoom), (float)DWWidth / (float)DWHeight, camera.nearplane, camera.farplane);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -69,7 +70,7 @@ int main() {
 		lastFrame = currentFrame;
 
 		view = camera.GetViewMatrix();
-		projection = glm::perspective(glm::radians(camera.Zoom), (float)Window::DWWidth / (float)Window::DWHeight, camera.nearplane, camera.farplane);
+		projection = glm::perspective(glm::radians(camera.Zoom), (float)DWWidth / (float)DWHeight, camera.nearplane, camera.farplane);
 
 		processInput(window);
 
@@ -78,6 +79,7 @@ int main() {
 		preview = view;
 		preprojection = projection;
 		offsetindex++;
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -105,7 +107,7 @@ void processInput(GLFWwindow* window)
 }
 void mouse_call_back(GLFWwindow* window, double xpos, double ypos) {
 
-	currentx = Window::scr_WIDTH - static_cast<float>(xpos);
+	currentx = scr_WIDTH - static_cast<float>(xpos);
 	currenty = static_cast<float>(ypos);
 
 	if (mouseClick)
@@ -123,11 +125,11 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	camera.ProcessMouseScroll(float(yoffset));
 }
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS )
+	if (!windowFocus && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && OWWidth <= currentx && currentx <= (OWWidth + DWWidth))
 		mouseClick = true;
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
 		mouseClick = false;
 }
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-	glViewport(0, 0, Window::scr_WIDTH, Window::scr_HEIGHT);
+	glViewport(0, 0, scr_WIDTH, scr_HEIGHT);
 }

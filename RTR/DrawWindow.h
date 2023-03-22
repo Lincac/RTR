@@ -11,14 +11,20 @@
 
 class DrawWindow : public Window {
 public:
-	DrawWindow() {};
+	DrawWindow() {
+		renderMode = std::make_shared<PBR>();
+		renderPath = std::make_shared<Forward>(renderMode);
+	};
+
 	virtual ~DrawWindow() override {};
-	virtual void RenderWindow(unsigned int textureID = NULL) override;
-	virtual Message SendMessage() override { return Message(); };
-	virtual void ReciveMessage(Message message) override {};
+	virtual void RenderWindow(std::shared_ptr<Objects> objs, unsigned int textureID = NULL) override;
+	virtual std::shared_ptr<RenderPath> GetRenderPath()override { return renderPath; };
+private:
+	std::shared_ptr<RenderMode> renderMode;
+	std::shared_ptr<RenderPath> renderPath;
 };
 
-void DrawWindow::RenderWindow(unsigned int textureID) {
+void DrawWindow::RenderWindow(std::shared_ptr<Objects> objs, unsigned int textureID) {
 	ImGui::SetNextWindowPos(ImVec2(float(OWWidth), 0), ImGuiCond_None);
 	ImGui::SetNextWindowSize(ImVec2(float(DWWidth), float(DWHeight)), ImGuiCond_None);
 	{
@@ -43,10 +49,39 @@ void DrawWindow::RenderWindow(unsigned int textureID) {
 				}
 				ImGui::EndMenu();
 			}
+
+			if (ImGui::BeginMenu("RenderPath"))
+			{
+				if (ImGui::MenuItem("Forward") && renderPathName != "Forward")
+					renderPath = std::make_shared<Forward>(renderMode);
+				else if (ImGui::MenuItem("Defered") && renderPathName != "Defered") 
+					renderPath = std::make_shared<Defered>(renderMode);
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("RenderMode"))
+			{
+				if (ImGui::MenuItem("PBR") && renderModeName != "PBR")
+				{
+					renderMode = std::make_shared<PBR>();
+					renderPath->SetRenderMode(renderMode);
+				}
+				else if (ImGui::MenuItem("BlinPhone") && renderModeName != "BlinPhone")
+				{
+					renderMode = std::make_shared<BlinPhone>();
+					renderPath->SetRenderMode(renderMode);
+				}
+				else if (ImGui::MenuItem("Cartoon") && renderModeName != "Cartoon") {
+
+				}
+
+				ImGui::EndMenu();
+			}
+
 			ImGui::EndMenuBar();
 		}
 		
-		//ImGui::Image((void*)(intptr_t)textureID, ImVec2(float(DWWidth - 20), float(DWHeight - 40)));
 		ImGui::Image((void*)(intptr_t)textureID, ImGui::GetContentRegionAvail(),ImVec2(0,1),ImVec2(1,0));
 
 		ImGui::End();

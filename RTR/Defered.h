@@ -11,6 +11,7 @@ public:
 	Defered(std::shared_ptr<RenderMode> mode);
 	~Defered();
 	virtual unsigned int Render(std::shared_ptr<Objects> objs) override;
+	virtual void SetRenderMode(std::shared_ptr<RenderMode> rm) override { renderMode = rm; };
 private:
 	unsigned int FBO;
 	unsigned int textureID;
@@ -28,7 +29,7 @@ Defered::Defered(std::shared_ptr<RenderMode> mode) {
 
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Window::DWWidth, Window::DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, DWWidth, DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
@@ -41,7 +42,7 @@ Defered::Defered(std::shared_ptr<RenderMode> mode) {
 
 	glGenTextures(1, &HDRtextureID);
 	glBindTexture(GL_TEXTURE_2D, HDRtextureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Window::DWWidth, Window::DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, DWWidth, DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, HDRtextureID, 0);
@@ -69,7 +70,7 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 
 	// defered shading
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
+	glViewport(0, 0, DWWidth, DWHeight);
 	glClearColor(BackGround.x, BackGround.y, BackGround.z, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	renderMode->DRender();
@@ -77,7 +78,7 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 	// 获取 gbuffer 的深度
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, gbuffer->GetPassFBO());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // 写入到默认帧缓冲
-	glBlitFramebuffer(0, 0, Window::DWWidth, Window::DWHeight, 0, 0, Window::DWWidth, Window::DWHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	glBlitFramebuffer(0, 0, DWWidth, DWHeight, 0, 0, DWWidth, DWHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	light->RenderLight(view, projection, camera.Position);
@@ -95,11 +96,11 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO); // 写入到默认帧缓冲
-	glBlitFramebuffer(0, 0, Window::DWWidth, Window::DWHeight, 0, 0, Window::DWWidth, Window::DWHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	glBlitFramebuffer(0, 0, DWWidth, DWHeight, 0, 0, DWWidth, DWHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 	// taa
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
+	glViewport(0, 0, DWWidth, DWHeight);
 	glClearColor(1.0,1.0,1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	taa->shader->use();
@@ -119,7 +120,7 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, taa->historyframe);
-	glBlitFramebuffer(0, 0, Window::DWWidth, Window::DWHeight, 0, 0, Window::DWWidth, Window::DWHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glBlitFramebuffer(0, 0, DWWidth, DWHeight, 0, 0, DWWidth, DWHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 	if (OpenSSR && renderMode->getRenderModeName() == "BlinPhone")
 	{
@@ -131,7 +132,7 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 	HDR(objs);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, Window::scr_WIDTH, Window::scr_HEIGHT);
+	glViewport(0, 0, scr_WIDTH, scr_HEIGHT);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	return HDRtextureID;
@@ -139,7 +140,7 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 
 void Defered::HDR(std::shared_ptr<Objects> objs) {
 	glBindFramebuffer(GL_FRAMEBUFFER, HDRFBO);
-	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
+	glViewport(0, 0, DWWidth, DWHeight);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	processshader->use();
 	processshader->setInt("HDR", 0);

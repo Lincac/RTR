@@ -20,7 +20,8 @@ private:
 	unsigned int gParameter;
 	unsigned int gVelo;
 	unsigned int depthTexture;
-	std::shared_ptr<Shader> shader;
+	std::shared_ptr<Shader> PBRshader;
+	std::shared_ptr<Shader> BlinPhoneshader;
 	std::shared_ptr<Shader> MipMapShader;
 };
 
@@ -30,35 +31,35 @@ GBufferPass::GBufferPass() {
 
 	glGenTextures(1, &gPosition);
 	glBindTexture(GL_TEXTURE_2D, gPosition);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Window::DWWidth, Window::DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, DWWidth, DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, gPosition, 0);
 
 	glGenTextures(1, &gNormal);
 	glBindTexture(GL_TEXTURE_2D, gNormal);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Window::DWWidth, Window::DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, DWWidth, DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,GL_TEXTURE_2D, gNormal, 0);
 
 	glGenTextures(1, &gAlbedo);
 	glBindTexture(GL_TEXTURE_2D, gAlbedo);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Window::DWWidth, Window::DWHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, DWWidth, DWHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedo, 0);
 
 	glGenTextures(1, &gParameter);
 	glBindTexture(GL_TEXTURE_2D, gParameter);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Window::DWWidth, Window::DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, DWWidth, DWHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gParameter, 0);
 
 	glGenTextures(1, &gVelo);
 	glBindTexture(GL_TEXTURE_2D, gVelo);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, Window::DWWidth, Window::DWHeight, 0, GL_RG, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, DWWidth, DWHeight, 0, GL_RG, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gVelo, 0);
@@ -68,12 +69,12 @@ GBufferPass::GBufferPass() {
 
 	//glGenRenderbuffers(1, &gRBO);
 	//glBindRenderbuffer(GL_RENDERBUFFER, gRBO);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, Window::DWWidth, Window::DWHeight);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, DWWidth, DWHeight);
 	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, gRBO);
 
 	glGenTextures(1, &depthTexture);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, Window::DWWidth, Window::DWHeight, 0,
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, DWWidth, DWHeight, 0,
 		GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -86,8 +87,8 @@ GBufferPass::GBufferPass() {
 		std::cout << "error to compile gbuffer" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	shader = std::make_shared<Shader>("shader/gbuffer/BlinPhonegbuffer.vs", "shader/gbuffer/BlinPhonegbuffer.fs");
-	//shader = std::make_shared<Shader>("shader/gbuffer/PBRbuffer.vs", "shader/gbuffer/PBRbuffer.fs");
+	BlinPhoneshader = std::make_shared<Shader>("shader/gbuffer/BlinPhonegbuffer.vs", "shader/gbuffer/BlinPhonegbuffer.fs");
+	PBRshader = std::make_shared<Shader>("shader/gbuffer/PBRbuffer.vs", "shader/gbuffer/PBRbuffer.fs");
 	MipMapShader = std::make_shared<Shader>("shader/gbuffer/MipMap.vs", "shader/gbuffer/MipMap.fs");
 	TexMap.emplace("gPosition", gPosition);
 	TexMap.emplace("gNormal", gNormal);
@@ -109,10 +110,11 @@ GBufferPass::~GBufferPass() {
 
 void GBufferPass::RenderPass(std::shared_ptr<Objects> objs, std::string renderModeName) {
 	glBindFramebuffer(GL_FRAMEBUFFER, gFBO);
-	glViewport(0, 0, Window::DWWidth, Window::DWHeight);
+	glViewport(0, 0, DWWidth, DWHeight);
 	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	objs->GbufferRender(renderModeName, shader);
+	if(renderModeName == "PBR") objs->GbufferRender(renderModeName, PBRshader);
+	else if (renderModeName == "BlinPhone") objs->GbufferRender(renderModeName,  BlinPhoneshader);
 
 	if (OpenSSR)
 	{
@@ -122,9 +124,9 @@ void GBufferPass::RenderPass(std::shared_ptr<Objects> objs, std::string renderMo
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, depthTexture);
 		glDepthFunc(GL_ALWAYS);
-		int numLevels = 1 + (int)floorf(log2f(fmaxf(Window::DWWidth, Window::DWHeight))); // 计算最大分辨率
-		int currentWidth = Window::DWWidth;
-		int currentHeight = Window::DWHeight;
+		int numLevels = 1 + (int)floorf(log2f(fmaxf(DWWidth, DWHeight))); // 计算最大分辨率
+		int currentWidth = DWWidth;
+		int currentHeight = DWHeight;
 		for (int i = 1; i < numLevels; i++) {
 			glUniform2i(glGetUniformLocation(MipMapShader->ID, "u_previousLevelDimensions"), currentWidth, currentHeight);
 			MipMapShader->setInt("u_previousLevel", i - 1);

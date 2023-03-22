@@ -12,9 +12,6 @@
 #include"ObjectWindow.h"
 #include"DrawWindow.h"
 
-#include"Forward.h"
-#include"Defered.h"
-
 class Program {
 public:
 	Program() {};
@@ -30,14 +27,8 @@ private:
 	std::shared_ptr<Window> operatewindow;
 	std::shared_ptr<Window> drawwindow;
 
-	// forward defered
-	std::shared_ptr<RenderPath> renderPath;
-
 	// load objs
 	std::shared_ptr<Objects> objs;
-
-	// message send
-	Message message;
 };
 
 void Program::Init() {
@@ -59,19 +50,15 @@ void Program::Init() {
 	unsigned int skyboxmap = LoadSkyBox("image/hdr/newport_loft.hdr");
 	TexMap.emplace("SkyBoxMap", skyboxmap);
 	unsigned int white = LoadTexture("image/white.jpg");
-	TexMap.emplace("White", white);
+	ChartletMap.emplace("White", white);
 	unsigned int Dlight = LoadTexture("image/DirectionLight.png");
-	TexMap.emplace("DirectionLight", Dlight);
+	ChartletMap.emplace("DirectionLight", Dlight);
 	unsigned int Plight = LoadTexture("image/PointLight.png");
-	TexMap.emplace("PointLight", Plight);
+	ChartletMap.emplace("PointLight", Plight);
 
 	objs = std::make_shared<Objects>();
-	std::shared_ptr<Object> sphere = std::make_shared<Sphere>("Sphere" + std::to_string(objs->get_objs().size()));
+	std::shared_ptr<Object> sphere = std::make_shared<Sphere>("Sphere" + std::to_string(objs->get_objs().size()), "PBR");
 	objs->add(sphere);
-	//std::shared_ptr<Object> cube = std::make_shared<Cube>("Cube" + std::to_string(objs->get_objs().size()));
-	//objs->add(cube);
-	//std::shared_ptr<Object> plane = std::make_shared<Plane>("Plane" + std::to_string(objs->get_objs().size()));
-	//objs->add(plane);
 
 	std::shared_ptr<RenderHelp> csm = std::make_shared<CSMPass>();
 	passes.emplace("csm", csm);
@@ -91,11 +78,6 @@ void Program::Init() {
 	skyboxshader = std::make_shared<Shader>("shader/skybox/sky.vs", "shader/skybox/sky.fs");
 	Debugshader = std::make_shared<Shader>("shader/temp/temp.vs", "shader/temp/temp.fs");
 	processshader = std::make_shared<Shader>("shader/hdr/hdr.vs", "shader/hdr/hdr.fs");
-
-	std::shared_ptr<RenderMode> renderMode = std::make_shared<PBR>();
-	renderPath = std::make_shared<Forward>(renderMode);
-
-	message = Message();
 }
 
 void Program::Render() {
@@ -104,28 +86,32 @@ void Program::Render() {
 	csm->RenderPass(objs);
 
 	//// ssao 
-	//if (OpenSSAO)
-	//{
-	//	std::shared_ptr<RenderHelp> gbuffer = passes.at("gbuffer");
-	//	gbuffer->RenderPass(objs);
-	//	std::shared_ptr<RenderHelp> ssao = passes.at("ssao");
-	//	ssao->RenderPass(objs);
-	//}
+	if (OpenSSAO)
+	{
+		std::shared_ptr<RenderHelp> gbuffer = passes.at("gbuffer");
+		gbuffer->RenderPass(objs);
+		std::shared_ptr<RenderHelp> ssao = passes.at("ssao");
+		ssao->RenderPass(objs);
+	}
 
+	std::shared_ptr<RenderPath> renderPath = drawwindow->GetRenderPath();
 	unsigned int ID = renderPath->Render(objs);
 
 	ImGui_ImplOpenGL3_NewFrame();	
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-	objectwindow->RenderWindow();
-	drawwindow->RenderWindow( ID);
-	operatewindow->RenderWindow();
+	objectwindow->RenderWindow(objs);
+	drawwindow->RenderWindow(objs,ID);
+	operatewindow->RenderWindow(objs);
+
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+	Update();
+
 	 //debug
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//glViewport(0, 0, Window::scr_WIDTH, Window::scr_HEIGHT);
+	//glViewport(0, 0, scr_WIDTH, scr_HEIGHT);
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	//Debugshader->use();
 	//Debugshader->setInt("Tex", 0);
@@ -138,7 +124,6 @@ void Program::Render() {
 }
 
 void Program::Update() {
-
 }
 
 #endif // !PROGRAM_H
