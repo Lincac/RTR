@@ -1,13 +1,13 @@
 # RTR
-基于物理实时渲染，VS拉取生成即可运行
+基于物理实时渲染，VS拉取生成即可运行  
+(23.3.23 更新：添加了功能界面能够切换BlinPhone和PBR模式、设置纹理、物体添加、SSAO等功能设置)  
 
 # 当前版本如下所示  
-支持BlinPhone渲染  
-![`AW3K44@ H1IFZA)1O }1U6](https://user-images.githubusercontent.com/83110022/225012961-2039b332-3eeb-4777-b259-74039a761683.png)  
+支持BlinPhone渲染 
+![8VQ`CE(VN~EN2N5M`NG8U41](https://user-images.githubusercontent.com/83110022/227155921-0c5810e5-8fd8-41cf-87c5-3b5cca54229d.png)  
 
 支持PBR渲染  
-![A9ZHY{TG{DJUCBB$`9`{DRW](https://user-images.githubusercontent.com/83110022/226226759-f76af797-a67f-4371-b55b-44f12da0702a.png)
-
+![~KRH@FG1}LSJ$ZYDCYF(0QI](https://user-images.githubusercontent.com/83110022/227155958-d4ad36e9-77c9-4631-b796-91a98bc937aa.png)  
 
 最新添加！！！(23.3.15)  
 延迟渲染TAA抗锯齿实现，效果如下  
