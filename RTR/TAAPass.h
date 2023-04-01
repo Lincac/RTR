@@ -26,6 +26,7 @@ TAAPass::TAAPass() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	shader = std::make_shared<Shader>("shader/taa/taa.vs", "shader/taa/taa.fs");
+	TexMap.emplace("AlbedoRendered", historycolor);
 }
 
 TAAPass::~TAAPass() {

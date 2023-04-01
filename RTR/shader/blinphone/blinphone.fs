@@ -126,7 +126,7 @@ void main()
     // ambient
     vec3 ambient = Ambient * albedo;
     // diffuse
-    vec3 diffuse = lightCol * albedo * max(dot(lightDir, normal), 0.0);;
+    vec3 diffuse = lightCol * albedo * max(dot(lightDir, normal), 0.0);
     // specular
     vec3 specular = lightCol * albedo * pow(max(dot(normal, halfwayDir), 0.0), Gloss);    
     // calculate shadow

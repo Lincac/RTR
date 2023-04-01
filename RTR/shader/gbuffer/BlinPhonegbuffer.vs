@@ -29,13 +29,13 @@ const vec2 Halton_2_3[8] =
     vec2(-7.0f / 8.0f, 7.0f / 9.0f)
 };
 
-uniform float scr_width;
-uniform float scr_height;
-uniform int offsetindex;
-
 uniform mat4 preProjection;
 uniform mat4 preView;
 uniform mat4 preModel;
+
+uniform float scr_width;
+uniform float scr_height;
+uniform int offsetindex;
 
 void main(){
     vs_out.nowPos = projection * view * model * vec4(aPos,1.0);

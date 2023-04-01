@@ -12,6 +12,7 @@ public:
 	~Defered();
 	virtual unsigned int Render(std::shared_ptr<Objects> objs) override;
 	virtual void SetRenderMode(std::shared_ptr<RenderMode> rm) override { renderMode = rm; };
+	virtual std::string getRenderPathName() override { return "Defered"; };
 private:
 	unsigned int FBO;
 	unsigned int textureID;
@@ -79,8 +80,8 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, gbuffer->GetPassFBO());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // Ð´Èëµ½Ä¬ÈÏÖ¡»º³å
 	glBlitFramebuffer(0, 0, DWWidth, DWHeight, 0, 0, DWWidth, DWHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	light->RenderLight(view, projection, camera.Position);
 
 	if (OpenSkyBox)
@@ -101,7 +102,6 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 	// taa
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, DWWidth, DWHeight);
-	glClearColor(1.0,1.0,1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	taa->shader->use();
 	taa->shader->setInt("currentcolor",0);
@@ -121,10 +121,10 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, taa->historyframe);
 	glBlitFramebuffer(0, 0, DWWidth, DWHeight, 0, 0, DWWidth, DWHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	if (OpenSSR && renderMode->getRenderModeName() == "BlinPhone")
+	if (OpenSSR)
 	{
-		TexMap.emplace("AlbedoRendered", taa->historycolor);
 		std::shared_ptr<RenderHelp> ssr = passes.at("ssr");
 		ssr->RenderPass(objs);
 	}
@@ -141,6 +141,7 @@ unsigned int Defered::Render(std::shared_ptr<Objects> objs) {
 void Defered::HDR(std::shared_ptr<Objects> objs) {
 	glBindFramebuffer(GL_FRAMEBUFFER, HDRFBO);
 	glViewport(0, 0, DWWidth, DWHeight);
+	glClearColor(BackGround.x, BackGround.y, BackGround.z, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	processshader->use();
 	processshader->setInt("HDR", 0);

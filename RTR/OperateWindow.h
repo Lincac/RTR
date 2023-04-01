@@ -4,8 +4,6 @@
 #define OPERATEWINDOW_H
 
 #include"Window.h"
-#include <windows.h>  
-#include <commdlg.h> 
 
 class OperateWindow : public Window {
 public:
@@ -13,7 +11,10 @@ public:
 		tempPos[0] = tempPos[1] = tempPos[2] = 1;
 		tempSca[0] = tempSca[1] = tempSca[2] = 1;
 		tempRot[0] = tempRot[1] = tempRot[2] = 1;
-		temp[0] = temp[1] = temp[2] = 1;
+		temp[0] = temp[1] = temp[2] = temp[3] = 1;
+
+		lightPos[0] = lightPos[1] = lightPos[2] = 1;
+		lightCol[0] = lightCol[1] = lightCol[2] = 1;
 
 		OpenNewWindow = false;
 		TexName = "";
@@ -25,24 +26,26 @@ public:
 	float tempPos[3];
 	float tempSca[3];
 	float tempRot[3];
-	float temp[3];
+	float temp[4];
+
+	float lightPos[3];
+	float lightCol[3];
 
 private:
 	void RenderNewWindow(std::shared_ptr<Objects> objs);
-	std::string OpenFileDialog();
 	bool OpenNewWindow;
 	std::string TexName;
 };
 
 void OperateWindow::RenderWindow(std::shared_ptr<Objects> objs, unsigned int textureID) {
 	ImGui::SetNextWindowPos(ImVec2(float(OWWidth + DWWidth), 0), ImGuiCond_None);
-	ImGui::SetNextWindowSize(ImVec2(float(OPWWidth), float(OPWHeight)), ImGuiCond_None);
+	ImGui::SetNextWindowSize(ImVec2(float(OPWWidth), float(OPWHeight / 2.0)), ImGuiCond_None);
 	{
-		ImGui::Begin("Operate", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar);
+		ImGui::Begin("Operate Object", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar);
 
 		if (ImGui::BeginMenuBar())
 		{
-			if (ImGui::BeginMenu("Setting"))
+			if (ImGui::BeginMenu("Object Setting"))
 			{
 				if (ImGui::MenuItem("Reset Data"))
 				{
@@ -68,6 +71,7 @@ void OperateWindow::RenderWindow(std::shared_ptr<Objects> objs, unsigned int tex
 		{
 			const auto& tempObj = objs->get_objs();
 			ImGui::Text(tempObj[ObjID - 1]->GetObjName().c_str());
+
 			if (ImGui::DragFloat3(" Position ", tempPos, 0.002f, -10.0f, 10.0f, "%.4f"))
 			{
 				glm::vec3 delta = glm::vec3(tempPos[0], tempPos[1], tempPos[2]) - glm::vec3(temp[0], temp[1], temp[2]);
@@ -104,7 +108,7 @@ void OperateWindow::RenderWindow(std::shared_ptr<Objects> objs, unsigned int tex
 
 			ImGui::NewLine();
 			ImGui::Text("Texture");
-			unsigned int Albedo = tempObj[ObjID-1]->GetAlbedo();
+			unsigned int Albedo = tempObj[ObjID - 1]->GetAlbedo();
 			unsigned int Normal = tempObj[ObjID - 1]->GetNormal();
 			unsigned int Metallic = tempObj[ObjID - 1]->GetMetallic();
 			unsigned int Roughness = tempObj[ObjID - 1]->GetRoughness();
@@ -113,73 +117,136 @@ void OperateWindow::RenderWindow(std::shared_ptr<Objects> objs, unsigned int tex
 			if (renderModeName == "PBR")
 			{
 				ImGui::Image((void*)(intptr_t)Albedo, ImVec2(100.0f, 100.0f));
-				if (ImGui::Button("change"))
+				if (ImGui::Button("Change Albedo(PBR)"))
 				{
 					OpenNewWindow = true;
-					windowFocus = true;
 					TexName = "Albedo";
 				}
 
 				ImGui::Image((void*)(intptr_t)Normal, ImVec2(100.0f, 100.0f));
-				if (ImGui::Button("change"))
+				if (ImGui::Button("Change Normal(PBR)"))
 				{
 					OpenNewWindow = true;
-					windowFocus = true;
 					TexName = "Normal";
 				}
 
 				ImGui::Image((void*)(intptr_t)Metallic, ImVec2(100.0f, 100.0f));
-				if (ImGui::Button("change"))
+				if (ImGui::Button("Change Metallic(PBR)"))
 				{
 					OpenNewWindow = true;
-					windowFocus = true;
 					TexName = "Metallic";
 				}
 
 				ImGui::Image((void*)(intptr_t)Roughness, ImVec2(100.0f, 100.0f));
-				if (ImGui::Button("change"))
+				if (ImGui::Button("Change Roughness(PBR)"))
 				{
 					OpenNewWindow = true;
-					windowFocus = true;
 					TexName = "Roughness";
 				}
 
 				ImGui::Image((void*)(intptr_t)Ao, ImVec2(100.0f, 100.0f));
-				if (ImGui::Button("change"))
+				if (ImGui::Button("Change Ao(PBR)"))
 				{
 					OpenNewWindow = true;
-					windowFocus = true;
 					TexName = "Ao";
 				}
 			}
 			else if (renderModeName == "BlinPhone") {
 				ImGui::Image((void*)(intptr_t)Albedo, ImVec2(100.0f, 100.0f));
-				if (ImGui::Button("change"))
+				if (ImGui::Button("Change Albedo(BlinPhone)"))
 				{
 					OpenNewWindow = true;
-					windowFocus = true;
 					TexName = "Albedo";
 				}
 
 				ImGui::Image((void*)(intptr_t)Normal, ImVec2(100.0f, 100.0f));
-				if (ImGui::Button("change"))
+				if (ImGui::Button("Change Normal(BlinPhone)"))
 				{
 					OpenNewWindow = true;
-					windowFocus = true;
 					TexName = "Normal";
 				}
+
+				temp[3] = tempObj[ObjID - 1]->GetGloss();
+				ImGui::DragFloat("Gloss", &temp[3], 0.1f, 8.0f, 256.0f);
+				tempObj[ObjID - 1]->SetGloss(temp[3]);
 			}
 		}
 
 		ImGui::End();
+
+		windowFocus = OpenNewWindow;
+
+		if (OpenNewWindow) RenderNewWindow(objs);
 	}
 
-	if (OpenNewWindow) RenderNewWindow(objs);
+	ImGui::SetNextWindowPos(ImVec2(float(OWWidth + DWWidth), OPWHeight / 2.0), ImGuiCond_None);
+	ImGui::SetNextWindowSize(ImVec2(float(OPWWidth), float(OPWHeight / 2.0)), ImGuiCond_None);
+	{
+		ImGui::Begin("Operate World", NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_MenuBar);
+
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("World Setting"))
+			{
+				if (ImGui::MenuItem("Reset World"))
+				{
+					temp[0] = temp[1] = temp[2] = 1;
+
+					light->SetLightPos(glm::vec3(20, 50, 20));
+					light->SetLightCol(glm::vec3(255 / 256.0, 244 / 256.0, 214 / 256.0));
+
+					lightCol[0] = 255 / 256.0;
+					lightCol[1] = 244 / 256.0;
+					lightCol[2] = 214 / 256.0;
+
+					OpenSSAO = false;
+					OpenSSR = false;
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenuBar();
+		}
+
+		if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None)) {
+				if(ImGui::BeginTabItem("World"))
+				{
+					if (ImGui::DragFloat3(" Light Position ", lightPos, 0.002f, -10.0f, 10.0f, "%.4f"))
+					{
+						glm::vec3 delta = glm::vec3(lightPos[0], lightPos[1], lightPos[2]) - glm::vec3(temp[0], temp[1], temp[2]);
+						glm::vec3 Pos = light->GetLightPos();
+						Pos += delta;
+						light->SetLightPos(Pos);
+
+						temp[0] = lightPos[0];
+						temp[1] = lightPos[1];
+						temp[2] = lightPos[2];
+					}
+
+					ImGui::ColorEdit3("Light Color", lightCol);
+					light->SetLightCol(glm::vec3(lightCol[0], lightCol[1], lightCol[2]));
+
+					ImGui::EndTabItem();
+				}
+
+				if (ImGui::BeginTabItem("Other"))
+				{
+					ImGui::Checkbox("OpenSSR", &OpenSSR);
+					ImGui::Checkbox("OpenSSAO", &OpenSSAO);
+					ImGui::Checkbox("OpenSkyBox", &OpenSkyBox);
+
+					ImGui::EndTabItem();
+				}
+
+				ImGui::EndTabBar();
+		}
+
+		ImGui::End();
+	}
 }
 
 void  OperateWindow::RenderNewWindow(std::shared_ptr<Objects> objs) {
 	ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
-	if (ImGui::Begin("Example: Simple layout", &OpenNewWindow, ImGuiWindowFlags_MenuBar))
+	if (ImGui::Begin("Texture Select", &OpenNewWindow, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse))
 	{
 		if (ImGui::BeginMenuBar())
 		{
@@ -188,11 +255,13 @@ void  OperateWindow::RenderNewWindow(std::shared_ptr<Objects> objs) {
 				if (ImGui::MenuItem("Load Texture"))
 				{
 					std::string path = OpenFileDialog();
-					std::string sub = path.substr(path.find_last_of('\\') + 1);
-					std::string name = sub.substr(0, sub.find('.'));
-
-					unsigned int texID = LoadTexture(path.c_str());
-					ChartletMap.emplace(name, texID);
+					if (path != "")
+					{
+						std::string sub = path.substr(path.find_last_of('\\') + 1);
+						std::string name = sub.substr(0, sub.find('.'));
+						unsigned int texID = LoadTexture(path.c_str());
+						ChartletMap.emplace(name, texID);
+					}
 				}  
 
 				if (ImGui::MenuItem("Close")) {
@@ -245,45 +314,6 @@ void  OperateWindow::RenderNewWindow(std::shared_ptr<Objects> objs) {
 		}
 	}
 	ImGui::End();
-}
-
-std::string TCHAR2STRING(TCHAR* STR)
-{
-	int iLen = WideCharToMultiByte(CP_ACP, 0, STR, -1, NULL, 0, NULL, NULL);
-	char* chRtn = new char[iLen * sizeof(char)];
-	WideCharToMultiByte(CP_ACP, 0, STR, -1, chRtn, iLen, NULL, NULL);
-	std::string str(chRtn);
-	delete chRtn;
-	return str;
-}
-
-std::string OperateWindow::OpenFileDialog() {
-
-	OPENFILENAME ofn;      // 公共对话框结构。     
-	TCHAR szFile[MAX_PATH]; // 保存获取文件名称的缓冲区。               
-	// 初始化选择文件对话框。     
-	ZeroMemory(&ofn, sizeof(OPENFILENAME));
-	ofn.lStructSize = sizeof(OPENFILENAME);
-	ofn.hwndOwner = NULL;
-	ofn.lpstrFile = szFile;
-	ofn.lpstrFile[0] = '\0';
-	ofn.nMaxFile = sizeof(szFile);
-	ofn.lpstrFilter = L"PNG(*.png)\0*.png\0JPG(*.jpg)\0*.jpg";//(LPCWSTR)"All(*.*)\0*.*\0Text(*.txt)\0*.TXT\0\0";
-	ofn.nFilterIndex = 1;
-	ofn.lpstrFileTitle = NULL;
-	ofn.nMaxFileTitle = 0;
-	ofn.lpstrInitialDir = NULL;
-	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-	//ofn.lpTemplateName =  MAKEINTRESOURCE(ID_TEMP_DIALOG);    
-	// 显示打开选择文件对话框。
-
-	if (GetOpenFileName(&ofn))
-	{
-		//显示选择的文件。 
-		std::cout << "Load File : " << TCHAR2STRING(szFile) << std::endl;
-	}
-
-	return TCHAR2STRING(szFile);
 }
 
 #endif // !OPERATEWINDOW_H

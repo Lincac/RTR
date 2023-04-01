@@ -26,11 +26,10 @@ void main(){
         hdrcolor *= ao;
     }
 
-    vec3 mapped = vec3(1.0) - exp(-hdrcolor * exposure);   // hdr to ldr
+    vec3 mapped = hdrcolor / (hdrcolor + vec3(1.0));   // hdr to ldr
     // vec3 mapped = hdrcolor / (hdrcolor + vec3(1.0));
 
-    const float gamma = 2.2;
-    mapped = pow(mapped,vec3(1.0 / gamma));
+    mapped = pow(mapped,vec3(1.0 / 2.2));
 
     FragColor = vec4(mapped,1.0); 
     // FragColor = texture(hdr,uv) * visibility;

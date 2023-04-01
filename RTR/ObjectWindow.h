@@ -24,7 +24,8 @@ void ObjectWindow::RenderWindow(std::shared_ptr<Objects> objs, unsigned int text
 			{
 				if (ImGui::MenuItem("Cube"))
 				{
-					std::shared_ptr<Object> cube = std::make_shared<Cube>("Cube" + std::to_string(objs->get_objs().size()),renderModeName);
+					std::shared_ptr<Object> cube = std::make_shared<Cube>("Cube" + std::to_string(objs->get_objs().size()),
+					renderModeName);
 					objs->add(cube);
 				}
 				if (ImGui::MenuItem("Sphere"))
@@ -36,6 +37,9 @@ void ObjectWindow::RenderWindow(std::shared_ptr<Objects> objs, unsigned int text
 				{
 					std::shared_ptr<Object> plane = std::make_shared<Plane>("Plane" + std::to_string(objs->get_objs().size()), renderModeName);
 					objs->add(plane);
+				}
+				if (ImGui::MenuItem("Model")) {
+
 				}
 
 				ImGui::EndMenu();

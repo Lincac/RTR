@@ -195,7 +195,7 @@ void main(){
     vec3 specular = nominator / denominator;
 
     float NdotL = max(dot(N,L),0.0);
-    L0 += (diffuse + specular) * radiance * NdotL * (1.0 - shadow);
+    L0 += (diffuse + specular) * lightCol * NdotL * (1.0 - shadow);
 
     // 间接光
     vec3 f = fresnelSchlickRoughness(max(dot(N,V),0.0),F0,roughness);

@@ -14,16 +14,23 @@ uniform float SCR_HEIGHT;
 
 const vec2 noiseScale = vec2(SCR_WIDTH / 4.0,SCR_HEIGHT / 4.0);
 int kernelSize = 64;
-float radius = 0.5;
+float radius = 1.0;
 float bias = 0.025;
 
 void main(){
     vec3 fragpos = texture(gPosition,TexCoords).xyz;
     fragpos = vec3(view * vec4(fragpos,1.0));
 
+    if(fragpos.x == 0.0){
+        FragColor = 0.0;
+        return;
+    }
+
     vec3 normal = normalize(texture(gNormal,TexCoords). xyz);
     mat3 normalMatrix = transpose(inverse(mat3(view)));
     normal =  normalMatrix * normal;
+
+    fragpos += normal * 0.001;
     
     vec3 randomVEC = normalize(texture(noiseTexture,TexCoords*noiseScale).xyz);
 

@@ -19,12 +19,12 @@ public:
 			Ao = LoadTexture("image/pbr/wall/wall_ao.png");
 		}
 		else {
-			Gloss = 120;
-			Albedo = ChartletMap.at("White");
+			Albedo = LoadTexture("image/pbr/wall/wall_albedo.png");
 			Normal = 0;
 		}
+		Gloss = 8.0;
 
-		position = glm::vec3(0);
+		position = glm::vec3(0,-1,0);
 		scale = glm::vec3(1);
 		rotate = glm::vec3(1);
 
@@ -48,6 +48,22 @@ public:
 	virtual void SetPosition(glm::vec3 pos)override { position = pos; };
 	virtual void SetScale(glm::vec3 sc)override { scale = sc; };
 	virtual void SetRotate(glm::vec3 ro) override { rotate = ro; };
+
+	virtual unsigned int GetAlbedo()override { return Albedo; }
+	virtual unsigned int GetNormal() override { return Normal; }
+	virtual unsigned int GetMetallic()override { return Metallic; }
+	virtual unsigned int GetRoughness()override { return Roughness; }
+	virtual unsigned int GetAo() override { return Ao; }
+
+	virtual void SetAlbedo(unsigned int ID) override { Albedo = ID; }
+	virtual void SetNormal(unsigned int ID) override { Normal = ID; }
+	virtual void SetMetallic(unsigned int ID)override { Metallic = ID; }
+	virtual void SetRoughness(unsigned int ID) override { Roughness = ID; }
+	virtual void SetAo(unsigned int ID) override { Ao = ID; }
+
+	virtual float GetGloss() override { return Gloss; };
+	virtual void SetGloss(float g) override { Gloss = g; };
+
 private:
 	std::string name;
 	glm::vec3 position;
@@ -82,12 +98,11 @@ void Plane::render(std::string renderModeName, std::shared_ptr<Shader> shader) {
 	model = glm::translate(model, position);
 
 	shader->use();
+	shader->setMat4("model", model);
+	shader->setMat4("view", view);
+	shader->setMat4("projection", projection);
 	if (renderModeName == "BlinPhone")
 	{
-		shader->setMat4("model", model);
-		shader->setMat4("view", view);
-		shader->setMat4("projection", projection);
-
 		shader->setInt("Albedo", 0);
 		shader->setInt("Normal", 1);
 		shader->setInt("shadowMap", 2);
@@ -122,10 +137,6 @@ void Plane::render(std::string renderModeName, std::shared_ptr<Shader> shader) {
 		shader->setInt("prefilterMap", 6);
 		shader->setInt("LUTMap", 7);
 		shader->setInt("shadowMap", 8);
-
-		shader->setMat4("model", model);
-		shader->setMat4("view", view);
-		shader->setMat4("projection", projection);
 
 		shader->setVec3("viewPos", camera.Position);
 		shader->setVec3("lightPos", light->GetLightPos());

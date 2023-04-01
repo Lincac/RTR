@@ -42,23 +42,28 @@ void Program::Init() {
 	drawwindow = std::make_shared<DrawWindow>();
 
 	Ambient = glm::vec3(0.03);
-	BackGround = glm::vec3(56.0 / 256.0);
+	BackGround = glm::vec3(56.0 / 255.0);
 
 	light = std::make_shared<DirectionalLight>(glm::vec3(20, 50, 20), glm::vec3(255 / 256.0, 244 / 256.0, 214 / 256.0));
 	lightShader = std::make_shared<Shader>("shader/light/light.vs", "shader/light/light.fs");
+
+	TexMap.emplace("SkyBoxMap", LoadSkyBox("image/hdr/newport_loft.hdr"));
 	
-	unsigned int skyboxmap = LoadSkyBox("image/hdr/newport_loft.hdr");
-	TexMap.emplace("SkyBoxMap", skyboxmap);
-	unsigned int white = LoadTexture("image/white.jpg");
-	ChartletMap.emplace("White", white);
-	unsigned int Dlight = LoadTexture("image/DirectionLight.png");
-	ChartletMap.emplace("DirectionLight", Dlight);
-	unsigned int Plight = LoadTexture("image/PointLight.png");
-	ChartletMap.emplace("PointLight", Plight);
+	ChartletMap.emplace("White", LoadTexture("image/white.jpg"));
+	ChartletMap.emplace("DirectionLight", LoadTexture("image/DirectionLight.png"));
+	ChartletMap.emplace("PointLight", LoadTexture("image/PointLight.png"));
+	ChartletMap.emplace("rusted_iron_albedo", LoadTexture("image/pbr/rusted_iron/rusted_iron_albedo.png"));
+	ChartletMap.emplace("rusted_iron_normal", LoadTexture("image/pbr/rusted_iron/rusted_iron_normal.png"));
+	ChartletMap.emplace("rusted_iron_metallic", LoadTexture("image/pbr/rusted_iron/rusted_iron_metallic.png"));
+	ChartletMap.emplace("rusted_iron_roughness", LoadTexture("image/pbr/rusted_iron/rusted_iron_roughness.png"));
+	ChartletMap.emplace("rusted_iron_ao", LoadTexture("image/pbr/rusted_iron/rusted_iron_ao.png"));
+	ChartletMap.emplace("None_Tex", 0);
 
 	objs = std::make_shared<Objects>();
-	std::shared_ptr<Object> sphere = std::make_shared<Sphere>("Sphere" + std::to_string(objs->get_objs().size()), "PBR");
+	std::shared_ptr<Object> sphere = std::make_shared<Sphere>("Sphere" + std::to_string(objs->get_objs().size()), "BlinPhone");
 	objs->add(sphere);
+	std::shared_ptr<Object> plane = std::make_shared<Plane>("Plane" + std::to_string(objs->get_objs().size()), "BlinPhone");
+	objs->add(plane);
 
 	std::shared_ptr<RenderHelp> csm = std::make_shared<CSMPass>();
 	passes.emplace("csm", csm);
@@ -85,15 +90,6 @@ void Program::Render() {
 	std::shared_ptr<RenderHelp> csm = passes.at("csm");
 	csm->RenderPass(objs);
 
-	//// ssao 
-	if (OpenSSAO)
-	{
-		std::shared_ptr<RenderHelp> gbuffer = passes.at("gbuffer");
-		gbuffer->RenderPass(objs);
-		std::shared_ptr<RenderHelp> ssao = passes.at("ssao");
-		ssao->RenderPass(objs);
-	}
-
 	std::shared_ptr<RenderPath> renderPath = drawwindow->GetRenderPath();
 	unsigned int ID = renderPath->Render(objs);
 
@@ -107,8 +103,6 @@ void Program::Render() {
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-	Update();
-
 	 //debug
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	//glViewport(0, 0, scr_WIDTH, scr_HEIGHT);
@@ -116,10 +110,11 @@ void Program::Render() {
 	//Debugshader->use();
 	//Debugshader->setInt("Tex", 0);
 	//Debugshader->setInt("Tex2", 1);
+	//Debugshader->setMat4("view", view);
 	//glActiveTexture(GL_TEXTURE0);
 	//glBindTexture(GL_TEXTURE_2D, TexMap.at("SSR"));
 	//glActiveTexture(GL_TEXTURE1);
-	//glBindTexture(GL_TEXTURE_2D, TexMap.at("gAlbedo"));
+	//glBindTexture(GL_TEXTURE_2D, TexMap.at("ForwardID"));
 	//renderQuad();
 }
 

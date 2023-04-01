@@ -192,10 +192,6 @@ void main(){
     vec3 H = normalize(V + L);
     vec3 R = reflect(-V,N);
     
-    float distance = length(lightPos - fs_in.FragPos);
-    float attenuation = 1.0 / (distance * distance);
-    vec3 radiance = lightCol * attenuation;
-
     float shadow = ShadowCalculation(fs_in.FragPos);
 
     vec3 F0 = vec3(0.04); // 基础反射率(垂直入射)
@@ -216,10 +212,10 @@ void main(){
     // 直接光 镜面反射部分
     vec3 nominator = NDF * G * F;
     float denominator = 4.0 * max(dot(N,V),0.0) * max(dot(N,L),0.0) + 0.0001;
-    vec3 specular = nominator / denominator;
+    vec3 specular = nominator / denominator ;
 
     float NdotL = max(dot(N,L),0.0);
-    L0 += (diffuse + specular) * radiance * NdotL * (1.0 - shadow);
+    L0 += (diffuse + specular) * lightCol * NdotL * (1.0 - shadow);
 
     // 间接光
     vec3 f = fresnelSchlickRoughness(max(dot(N,V),0.0),F0,roughness);

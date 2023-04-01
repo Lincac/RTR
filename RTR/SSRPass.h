@@ -61,7 +61,8 @@ void SSRPass::RenderPass(std::shared_ptr<Objects> objs, std::string renderModeNa
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, TexMap.at("gNormal"));
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, TexMap.at("AlbedoRendered"));
+	if(renderModeName == "Forward") glBindTexture(GL_TEXTURE_2D, TexMap.at("ForwardID"));
+	else glBindTexture(GL_TEXTURE_2D, TexMap.at("AlbedoRendered"));
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, TexMap.at("depthMap"));
 	glActiveTexture(GL_TEXTURE4);

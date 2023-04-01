@@ -12,8 +12,10 @@
 class DrawWindow : public Window {
 public:
 	DrawWindow() {
-		renderMode = std::make_shared<PBR>();
+		renderMode = std::make_shared<BlinPhone>();
 		renderPath = std::make_shared<Forward>(renderMode);
+
+		OpenTextureView = false;
 	};
 
 	virtual ~DrawWindow() override {};
@@ -22,6 +24,9 @@ public:
 private:
 	std::shared_ptr<RenderMode> renderMode;
 	std::shared_ptr<RenderPath> renderPath;
+
+	bool OpenTextureView;
+	void TextureViewWindow();
 };
 
 void DrawWindow::RenderWindow(std::shared_ptr<Objects> objs, unsigned int textureID) {
@@ -32,31 +37,26 @@ void DrawWindow::RenderWindow(std::shared_ptr<Objects> objs, unsigned int textur
 
 		if (ImGui::BeginMenuBar())
 		{
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("Load Texture"))
-				{
-
-				}
-				ImGui::EndMenu();
-			}
-
 			if (ImGui::BeginMenu("View"))
 			{
-				if (ImGui::MenuItem("All Texture"))
+				if (ImGui::MenuItem("View Texture"))
 				{
-
+					OpenTextureView = true;
 				}
 				ImGui::EndMenu();
 			}
 
 			if (ImGui::BeginMenu("RenderPath"))
 			{
-				if (ImGui::MenuItem("Forward") && renderPathName != "Forward")
+				if (ImGui::MenuItem("Forward") && renderPathName != "Forward") {
+					renderPathName = "Forward";
 					renderPath = std::make_shared<Forward>(renderMode);
+				}
 				else if (ImGui::MenuItem("Defered") && renderPathName != "Defered") 
+				{
+					renderPathName = "Defered";
 					renderPath = std::make_shared<Defered>(renderMode);
-
+				}
 				ImGui::EndMenu();
 			}
 
@@ -65,11 +65,13 @@ void DrawWindow::RenderWindow(std::shared_ptr<Objects> objs, unsigned int textur
 				if (ImGui::MenuItem("PBR") && renderModeName != "PBR")
 				{
 					renderMode = std::make_shared<PBR>();
+					renderModeName = renderMode->getRenderModeName();
 					renderPath->SetRenderMode(renderMode);
 				}
 				else if (ImGui::MenuItem("BlinPhone") && renderModeName != "BlinPhone")
 				{
 					renderMode = std::make_shared<BlinPhone>();
+					renderModeName = renderMode->getRenderModeName();
 					renderPath->SetRenderMode(renderMode);
 				}
 				else if (ImGui::MenuItem("Cartoon") && renderModeName != "Cartoon") {
@@ -86,6 +88,75 @@ void DrawWindow::RenderWindow(std::shared_ptr<Objects> objs, unsigned int textur
 
 		ImGui::End();
 	}
+
+	if (OpenTextureView)
+	{
+		TextureViewWindow();
+	}
+}
+
+void DrawWindow::TextureViewWindow() {
+	ImGui::SetNextWindowSize(ImVec2(500, 440), ImGuiCond_FirstUseEver);
+	if (ImGui::Begin("Texture View", &OpenTextureView, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoCollapse))
+	{
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("Load Texture"))
+				{
+					std::string path = OpenFileDialog();
+					if (path != "")
+					{
+						std::string sub = path.substr(path.find_last_of('\\') + 1);
+						std::string name = sub.substr(0, sub.find('.'));
+						unsigned int texID = LoadTexture(path.c_str());
+						ChartletMap.emplace(name, texID);
+					}
+				}
+
+				if (ImGui::MenuItem("Close")) {
+					OpenTextureView = false;
+					windowFocus = false;
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenuBar();
+		}
+
+		// Left
+		static std::string selected = "";
+		{
+			ImGui::BeginChild("left pane", ImVec2(150, 0), true);
+			for (const auto& temp : ChartletMap) {
+				std::string TexName = temp.first;
+				if (ImGui::Selectable(TexName.c_str())) selected = TexName;
+			}
+			ImGui::EndChild();
+		}
+		ImGui::SameLine();
+
+		// Right
+		{
+			ImGui::BeginGroup();
+			ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetFrameHeightWithSpacing())); // Leave room for 1 line below us
+			ImGui::Text(selected.c_str());
+			ImGui::Separator();
+			if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None))
+			{
+				if (ImGui::BeginTabItem("Description"))
+				{
+					if (selected != "") ImGui::Image((void*)(intptr_t)ChartletMap.at(selected), ImGui::GetContentRegionAvail(), ImVec2(0, 1), ImVec2(1, 0));
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
+			}
+			ImGui::EndChild();
+
+			ImGui::EndGroup();
+		}
+	}
+	ImGui::End();
 }
 
 #endif // !DRAWWINDOW_H

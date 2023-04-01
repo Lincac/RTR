@@ -122,7 +122,8 @@ void mouse_call_back(GLFWwindow* window, double xpos, double ypos) {
 }
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	camera.ProcessMouseScroll(float(yoffset));
+	if (OWWidth <= currentx && currentx <= (OWWidth + DWWidth))
+		camera.ProcessMouseScroll(float(yoffset));
 }
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (!windowFocus && button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && OWWidth <= currentx && currentx <= (OWWidth + DWWidth))

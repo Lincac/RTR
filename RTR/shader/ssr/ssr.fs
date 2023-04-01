@@ -61,7 +61,7 @@ vec3 intersectCellBoundary(vec3 o,vec3  d, vec2 rayCell,vec2 cell_count, vec2 cr
 
 vec3 FindIntersection(vec3 start,vec3 rayDir,float maxTraceDistance,vec3 hitPos){
     vec2 crossStep = vec2(rayDir.x>=0?1:-1,rayDir.y>=0?1:-1); // 判断步进的方向
-    vec2 crossOffset = crossStep / vec2(1024,1024) / 128; // 防止光线擦边边界，添加一个偏移量
+    vec2 crossOffset = crossStep / vec2(900.0,900.0) / 128.0; // 防止光线擦边边界，添加一个偏移量
     crossStep = clamp(crossStep,0.0,1.0);
 
     vec3 ray = start; // 起点 （纹理坐标） 用来光线步进的
@@ -75,7 +75,6 @@ vec3 FindIntersection(vec3 start,vec3 rayDir,float maxTraceDistance,vec3 hitPos)
     int startLevel = 2;
     int stopLevel = 0;
     vec2 startCellCount = getCellCount(startLevel); // 起始单元分辨率
-
 
     vec2 rayCell = getCell(ray.xy,startCellCount); // 当前单元的位置
     ray = intersectCellBoundary(o, d, rayCell, startCellCount, crossStep, crossOffset * 64);// 步进光线,获得当前光线在纹理空间中的位置
@@ -114,6 +113,9 @@ vec3 FindIntersection(vec3 start,vec3 rayDir,float maxTraceDistance,vec3 hitPos)
     if(color.x < 0.2 && color.y < 0.2 && color.z < 0.2){
         intersected = false;
     }
+
+    float check = texture(gPosition,hitPos.xy).r;
+    if(check == 0.0) intersected = false;
 	
     return intersected ? texture(gAlbedo,hitPos.xy).rgb:vec3(0.0);
 }
@@ -121,7 +123,7 @@ vec3 FindIntersection(vec3 start,vec3 rayDir,float maxTraceDistance,vec3 hitPos)
 // 纹理空间中的z = 裁剪空间中的z
 void main(){
     float mask = texture(gParameter,TexCoords).r;
-    if(mask == 0){
+    if(mask == 0.0){
         FragColor = vec4(0.0);
         return;
     }
@@ -129,7 +131,9 @@ void main(){
     vec3 WorldPos = texture(gPosition,TexCoords).xyz;
     vec3 WorldNormal = normalize(texture(gNormal,TexCoords). xyz);
     mat3 normalMatrix = transpose(inverse(mat3(view)));
-    
+
+    WorldPos += WorldNormal * 0.001;
+
     vec3 positionInView = vec3(view * vec4(WorldPos,1.0));
     vec3 normalInView = normalMatrix * WorldNormal;
     vec3 V = normalize(positionInView);

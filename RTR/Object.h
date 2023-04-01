@@ -42,6 +42,9 @@ public:
 	virtual void SetRoughness(unsigned int ID) {  }
 	virtual void SetAo(unsigned int ID) {  }
 
+	virtual float GetGloss() { return 0; };
+	virtual void SetGloss(float g) {};
+
 };
 
 Camera camera(glm::vec3(0, 0, 5));
@@ -63,10 +66,8 @@ std::shared_ptr<Shader> Debugshader;
 float exposure = 1.0;
 
 bool	OpenSkyBox = false;
-bool OpenHDR = false;
 bool OpenSSAO = false;
 bool OpenSSR = false;
-bool OpenTAA = false;
 
 int offsetindex = 0;
 

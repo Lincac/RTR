@@ -82,7 +82,6 @@ GBufferPass::GBufferPass() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
-
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "error to compile gbuffer" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -111,7 +110,7 @@ GBufferPass::~GBufferPass() {
 void GBufferPass::RenderPass(std::shared_ptr<Objects> objs, std::string renderModeName) {
 	glBindFramebuffer(GL_FRAMEBUFFER, gFBO);
 	glViewport(0, 0, DWWidth, DWHeight);
-	glClearColor(0, 0, 0, 1);
+	glClearColor(0.0f,0.0f,0.0f,1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	if(renderModeName == "PBR") objs->GbufferRender(renderModeName, PBRshader);
 	else if (renderModeName == "BlinPhone") objs->GbufferRender(renderModeName,  BlinPhoneshader);

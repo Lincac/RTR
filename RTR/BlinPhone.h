@@ -19,7 +19,6 @@ BlinPhone::BlinPhone() {
 	OpenSkyBox = false;
 	shader = std::make_shared<Shader>("shader/blinphone/blinphone.vs", "shader/blinphone/blinphone.fs");
 	Dshader = std::make_shared<Shader>("shader/defered/BlinPhoneDefered.vs", "shader/defered/BlinPhoneDefered.fs");
-
 }
 
 void BlinPhone::Render(std::shared_ptr<Objects> objs) {
@@ -55,8 +54,6 @@ void BlinPhone::DRender() {
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, TexMap.at("CSM"));
 	renderQuad();
-
-
 }
 
 #endif // !BLINPHONE_H

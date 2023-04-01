@@ -19,10 +19,10 @@ public:
 			Ao = LoadTexture("image/pbr/rusted_iron/rusted_iron_ao.png");
 		}
 		else {
-			Gloss = 120;
-			Albedo = ChartletMap.at("White");
+			Albedo = LoadTexture("image/pbr/rusted_iron/rusted_iron_albedo.png");
 			Normal = 0;
 		}
+		Gloss = 8.0;
 
 		indexCount = 0;
 		position = glm::vec3(0);
@@ -61,6 +61,9 @@ public:
 	virtual void SetMetallic(unsigned int ID)override { Metallic = ID; }
 	virtual void SetRoughness(unsigned int ID) override { Roughness = ID; }
 	virtual void SetAo(unsigned int ID) override { Ao = ID; }
+
+	virtual float GetGloss() override { return Gloss; };
+	virtual void SetGloss(float g) override { Gloss = g; };
 
 private:
 	std::string name;
@@ -102,6 +105,7 @@ void Sphere::render(std::string renderModeName, std::shared_ptr<Shader> shader) 
 	shader->setMat4("projection", projection);
 	if (renderModeName == "BlinPhone")
 	{
+
 		shader->setInt("Albedo", 0);
 		shader->setInt("Normal", 1);
 		shader->setInt("shadowMap", 2);
